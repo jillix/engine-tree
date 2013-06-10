@@ -1,0 +1,12 @@
+{
+    "source": "github",
+    "owner": "IonicaBizau",
+    "name": "bind-tree",
+    "dependencies": [
+        "/tree.js",
+        "//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+    ],
+    "operations": [
+        { "file": "operations.js", "function": "getChildren"   }
+    ]
+}
