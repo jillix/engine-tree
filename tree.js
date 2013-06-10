@@ -1,91 +1,76 @@
-module.exports = function (config) {
+module.exports = function () {
 
     var self = this;
 
     /*
+     *  Get extension of file
+     *  ---------------------
+     *  Example: index.html
+     *                ^....
+     *      => html
+     */
+    function getExtensionOf (file) {
+        if (file.indexOf(".") === -1) { return undefined; }
+
+        return file.substring(file.lastIndexOf(".") + 1);
+    }
+
+    return {
+    /*
      *  Build tree function
      *  -------------------
-     *  Receives as argument an object like in
+     *  Receives as argument an array like in
      *  the example bellow:
-     *  {
-     *      "files": [
-     *          ".gitignore",
-     *          "application.json",
-     *          "readme.md"
-     *      ],
-     *      "public": {
-     *          "files": [
-     *              "sample1.html",
-     *              "sample2.html",
-     *              "sample3.html",
-     *              "tabs.html"
-     *          ]
-     *      }
-     *  }
+     *
+     *  [
+     *      "file1",
+     *      "file2",
+     *      "dir1/",
+     *      "file_n",
+     *  ]
+     *
      *  This function will build the files structure
      *  in HTML
      */
-    self.buildTreeFrom = function (files) {
-        // TODO
-        console.log("Building tree from: ");
-        console.log(files);
-    };
+    buildFrom: function (items, options) {
 
-    /*
-     *  Converts an array of paths to tree object
-     *  Example:
-     *  [
-     *      "/.gitignore",
-     *      "/application.json",
-     *      "/public/sample1.html",
-     *      "/public/sample2.html",
-     *      "/public/sample3.html",
-     *      "/public/tabs.html",
-     *      "/readme.md"
-     *  ]
-     *  The array above will be converted in the
-     *  following object
-     *  {
-     *      "files": [
-     *          ".gitignore",
-     *          "application.json",
-     *          "readme.md"
-     *      ],
-     *      "public": {
-     *          "files": [
-     *              "sample1.html",
-     *              "sample2.html",
-     *              "sample3.html",
-     *              "tabs.html"
-     *          ]
-     *      }
-     *  }
-     */
-    self.convertFromArrayToObject = function (files) {
+        var template = options.template;
+        var container = options.container;
 
-        // TODO
-//         var root = {};
-//         root.files = [];
-//
-//         for (var file in files) {
-//             var count = files[file].split("/").length - 1;
-//
-//             if (count === 1) {
-//                 root.files.push(files[file]);
-//             }
-//             else if (count > 1) {
-//                 var dir = files[file].substring(1);
-//                 var path = dir.substring(0, dir.indexOf("/"));
-//
-//                 var dirs = path.split("/");
-//                 console.log(dirs);
-//
-//                 if (!root[dir]) { root[dir] = {}; }
-//
-//
-//             }
-//         }
-//
-//         console.log(tree);
+        // TODO Use jQuery to create elements
+        var tree = "";
+        var ul = '<ul style="overflow: hidden;">';
+        li += ul;
+
+        // items: folders or files
+        for (var i in items) {
+            var plusNone;
+            var li = '<li>';
+            var name = items[i];
+            var dataFile;
+
+            if (items[i].substr(-1) === "/") {
+                plusNone = "plus";
+                type = "directory";
+                name = name.replace("/", "");
+            }
+            else {
+                plusNone = "none";
+                type = "file ext-" + getExtensionOf(items[i]);
+                dataFile = "/" + items[i];
+            }
+
+            li += '<span class="' + plusNone + '"></span>' +
+                  '<a ' + (dataFile ? 'data-file="' + dataFile + '"': '') +
+                  ' class="' + type + '"> ' + name + '</a>' +
+                  '</li>';
+
+            tree += li;
+        }
+
+        tree += '</li>';
+
+        $(container).html(tree);
+    }
     };
 };
