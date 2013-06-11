@@ -1,4 +1,4 @@
-module.exports = function () {
+module.exports = function (module) {
 
     var self = this;
 
@@ -15,7 +15,15 @@ module.exports = function () {
         return file.substring(file.lastIndexOf(".") + 1);
     }
 
-    return {
+    /*  +=======================+
+     *  |   Public functions    |
+     *  +=======================+
+     */
+
+    function init (config) {
+        // here will go the process config
+    }
+
     /*
      *  Build tree function
      *  -------------------
@@ -32,7 +40,7 @@ module.exports = function () {
      *  This function will build the files structure
      *  in HTML
      */
-    buildFrom: function (items, options) {
+    function buildFrom (items, options) {
 
         var template = options.template;
         var container = options.container;
@@ -72,5 +80,24 @@ module.exports = function () {
 
         $(container).html(tree);
     }
+
+    return {
+        init: init,
+        buildFrom: buildFrom
     };
 };
+
+
+module.exports = function (module, config) {
+
+    var tree = new Tree(module);
+
+    for (var i in tree) {
+        tree[i] = module[i] || tree[i];
+    }
+
+    tree = Object.extend(tree, module);
+    tree.init(config);
+
+    return tree;
+}

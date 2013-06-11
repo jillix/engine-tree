@@ -3,7 +3,9 @@
     "owner": "IonicaBizau",
     "name": "bind-tree",
     "dependencies": [
+        "/main.js",
         "/tree.js",
+        "/jstree/jquery.jstree.js",
         "//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
     ],
     "operations": [
