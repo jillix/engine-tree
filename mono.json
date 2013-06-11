@@ -6,9 +6,7 @@
         "/main.js",
         "/tree.js",
         "/jstree/jquery.jstree.js",
-        "//ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+        "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
     ],
-    "operations": [
-        { "file": "operations.js", "function": "getChildren"   }
-    ]
+    "operations": []
 }
