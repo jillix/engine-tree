@@ -40,62 +40,29 @@ module.exports = function(config) {
                 return;
         }
 
+        // an empty array
         if (!items || !items.length) { return; }
-        options = options || {};
 
-        var selector = $(options.selector);
-        var howToAdd = options.howToAdd;
+        var tree = $(".dms-tree", DmsTree.dom);
+        var folderTempl = $(".folder-template", tree);
 
-        var dataFileOfParent = options.dataFileOfParent;
+        var itemsToAppend = $("<div>");
 
-        // TODO Use jQuery to create elements
-        var tree = "<ul>";
-        var ul = '<ul style="overflow: auto;">';
-        li += ul;
-
-        // items: folders or files
         for (var i in items) {
-            var plusNone;
-            var li = "<li>";
-            var name = items[i];
-            var dataFile;
+            var item = items[i];
 
-            // if ends with "/", it's a directory
-            if (items[i].substr(-1) === "/") {
-                plusNone = "plus";
-                type = "directory";
-                name = name.replace("/", "");
-                dataFile = dataFileOfParent + items[i];
+            switch (item.type) {
+                case "folder":
+                    var newFolder = folderTempl.clone();
+                    newFolder
+                        .removeClass("folder-template")
+                        .find(".name").text(item.name)
+                    itemsToAppend.append(newFolder);
+                    break;
             }
-            else {
-                plusNone = "none";
-                type = "file ext-" + getExtensionOf(items[i]);
-                dataFile = dataFileOfParent + items[i];
-            }
-
-            li += '<span class="' + plusNone + '"></span>' +
-                  '<a data-file="' + dataFile + '"' +
-                  ' class="' + type + '"> ' + name + '</a>' +
-                  '</li>';
-
-            tree += li;
         }
 
-        tree += '</li></ul>';
-
-        switch (howToAdd) {
-            case "after":
-                selector.next().remove();
-                break;
-            case "before":
-                selector.prev().remove();
-                break;
-            case "html":
-                selector.html("");
-                break;
-        }
-
-        selector[howToAdd](tree);
+        tree.append(itemsToAppend.html());
     };
 
     /*
