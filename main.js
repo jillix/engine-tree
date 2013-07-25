@@ -23,7 +23,7 @@ module.exports = function(config) {
                 };
 
                 // -> emit -> bind-crud -> callback -> buildFrom Array
-                self.emit("find", crudObj, function (err, docs) {
+                DmsTree.emit("find", crudObj, function (err, docs) {
                     if (err) {
                         alert(err);
                         return;
