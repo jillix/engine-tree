@@ -1,4 +1,3 @@
-M.wrap('bitbucket/jillix/dms-tree/dev/main.js', function (require, module, exports) {
 var Bind = require("github/jillix/bind");
 var Events = require("github/jillix/events");
 
@@ -8,6 +7,41 @@ module.exports = function(config) {
     Events.call(DmsTree, config);
 
     DmsTree.buildFrom = function (items, options) {
+
+        switch (Object.prototype.toString.call(items)) {
+            // object
+            case "[object Object]":
+                var crudObj = {
+                    t: "_list",
+                    q: {
+                        _ln: {
+                            $elemMatch: {
+                                _id: items._id
+                            }
+                        }
+                    }
+                };
+
+                // -> emit -> bind-crud -> callback -> buildFrom Array
+                self.emit("find", crudObj, function (err, docs) {
+                    if (err) {
+                        alert(err);
+                        return;
+                    }
+
+                    DmsTree.buildFrom(docs, options);
+                });
+                return;
+            // array
+            case "[object Array]":
+                break;
+            // other type
+            default:
+                return;
+        }
+
+        if (!items || !items.length) { return; }
+        options = options || {};
 
         var selector = $(options.selector);
         var howToAdd = options.howToAdd;
@@ -100,5 +134,3 @@ module.exports = function(config) {
             .addClass("plus");
     };
 };
-
-return module; });
