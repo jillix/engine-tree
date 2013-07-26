@@ -6,6 +6,7 @@
         "/main.js",
         "github/jillix/bind/v0.1.0",
         "github/jillix/events/v0.1.1",
+        "http://cdnjs.cloudflare.com/ajax/libs/prefixfree/1.0.7/prefixfree.min.js",
         "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
     ],
     "operations": [ ]

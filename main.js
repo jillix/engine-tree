@@ -6,7 +6,12 @@ module.exports = function(config) {
     var DmsTree = this;
     Events.call(DmsTree, config);
 
+    var storage = {};
+
     DmsTree.buildFrom = function (items, options) {
+
+        var $tree = $(".dms-tree", DmsTree.dom);
+        var $typeTemplates = $(".type-templates", DmsTree.dom);
 
         switch (Object.prototype.toString.call(items)) {
             // object
@@ -14,9 +19,13 @@ module.exports = function(config) {
                 var crudObj = {
                     t: "_list",
                     q: {
-                        _ln: {
+                        "_ln._tp": {
+                            $ne: "_list"
+                        },
+                        "_ln": {
                             $elemMatch: {
-                                _id: items._id
+                                _id: items._id,
+                                _tp: "_template"
                             }
                         }
                     }
@@ -31,6 +40,35 @@ module.exports = function(config) {
 
                     DmsTree.buildFrom(docs, options);
                 });
+
+                crudObj = {
+                    t: "_list",
+                    q: {
+                        _ln: {
+                            $elemMatch: {
+                                _id: items._id
+                            }
+                        }
+                    },
+                    f: {
+                        $none: 1,
+                        _id: 0
+                    }
+                };
+
+                DmsTree.emit("find", crudObj, function (err, docs) {
+                    if (err) {
+                        alert(err);
+                        return;
+                    }
+
+                    var $all = $(".all-template", $typeTemplates)
+                        .clone()
+                        .removeClass("all-template");
+
+                    $(".all", $all).text(docs.length);
+                    $tree.prepend($all);
+                });
                 return;
             // array
             case "[object Array]":
@@ -40,64 +78,168 @@ module.exports = function(config) {
                 return;
         }
 
+        $tree.empty();
         // an empty array
         if (!items || !items.length) { return; }
+        storage = {};
 
-        var tree = $(".dms-tree", DmsTree.dom);
-        var folderTempl = $(".folder-template", tree);
+        var $folderTempl = $(".folder-template", $typeTemplates);
+        var $itemsToAppend = $("<div>");
 
-        var itemsToAppend = $("<div>");
 
         for (var i in items) {
             var item = items[i];
 
-            switch (item.type) {
-                case "folder":
-                    var newFolder = folderTempl.clone();
-                    newFolder
-                        .removeClass("folder-template")
-                        .find(".name").text(item.name)
-                    itemsToAppend.append(newFolder);
-                    break;
+            storage[item._id] = item;
+
+            var $newFolder = $folderTempl.clone();
+
+            $newFolder
+                .attr("data-id", item._id)
+                .removeClass("folder-template")
+                .find(".name").text(item.name)
+
+            $itemsToAppend.append($newFolder);
+        }
+
+        $tree.append($itemsToAppend.html());
+        $tree.find("li").hide().slideDown();
+    };
+
+    $(DmsTree.dom).off("click", ".folder");
+    $(DmsTree.dom).on("click", ".folder", function () {
+
+        var $item = $(this);
+        $item = $item.closest("li");
+
+        console.log(DmsTree.isLoading($item))
+        if (DmsTree.isLoading($item)) { return; }
+
+        var dataItem = storage[$item.attr("data-id")];
+
+        if (DmsTree.folderIsOpened($item)) {
+            DmsTree.closeFolder($item);
+            DmsTree.collapse($item);
+            return;
+        }
+
+        DmsTree.startLoading($item);
+
+        var crudObj = {
+            t: "_list",
+            q: {
+                "_ln._id": dataItem._id
             }
         }
 
-        tree.append(itemsToAppend.html());
-    };
+        DmsTree.emit("find", crudObj, function (err, docs) {
 
-    /*
-     *  Adds .loading class to jQueryElement
-     */
-    DmsTree.startLoading = function (jQueryElement) {
+            if (err) {
+                alert(err);
+                return;
+            }
+
+            // TODO Hardcode
+            docs = [ { "_id" : "51f156460b0bfb4b9b486cf0", "_tp" : "_list", "name" : "Filtered 3", "type" : "filtered", "_ln" : [ { "_tp" : "_template", "_id" : "user" }, { "_tp" : "_list", "_id" : "51f156460b0bfb4b9b486ce5" } ] }, { "_id" : "51f156460b0bfb4b9b486cf1", "_tp" : "_list", "name" : "Filtered", "type" : "filtered", "_ln" : [ { "_tp" : "_template", "_id" : "user" }, { "_tp" : "_list", "_id" : "51f156460b0bfb4b9b486ce6" } ] } ];
+
+            // TODO Just simulating a timeout
+            setTimeout(function () {
+            DmsTree.expand($item, docs);
+            DmsTree.stopLoading($item);
+            DmsTree.openFolder($item);
+            }, 1000);
+        });
+    });
+
+    ///////////////////////////////
+    // Open-Close functions
+    ///////////////////////////////
+    DmsTree.openFolder = function (jQueryElement) {
 
         jQueryElement = $(jQueryElement);
-        jQueryElement.addClass("loading");
+        if (jQueryElement.attr("data-loading")) { return; }
+
+        var $openClose = jQueryElement.find(".open-close");
+
+        $openClose.children().first().addClass("hide");
+        $openClose.children().last().removeClass("hide");
+        jQueryElement.find(".chevron").toggleClass("icon-chevron-right icon-chevron-down");
+    };
+
+    DmsTree.closeFolder = function (jQueryElement) {
+        jQueryElement = $(jQueryElement);
+        if (jQueryElement.attr("data-loading")) { return; }
+
+        var $openClose = jQueryElement.find(".open-close");
+
+        $openClose.children().last().addClass("hide");
+        $openClose.children().first().removeClass("hide");
+        jQueryElement.find(".chevron").toggleClass("icon-chevron-right icon-chevron-down");
+    };
+
+    DmsTree.folderIsOpened = function (jQueryElement) {
+        jQueryElement = $(jQueryElement);
+        var $openClose = jQueryElement.find(".open-close");
+
+        if ($openClose.children().last().hasClass("hide")) { return false; }
+        return true;
+    };
+
+    ///////////////////////////////
+    // Loading functions
+    ///////////////////////////////
+    DmsTree.startLoading = function (jQueryElement) {
+        jQueryElement = $(jQueryElement);
+        var $loading = jQueryElement.find(".loading-toggle");
+
+        $loading.children().first().removeClass("hide");
+        $loading.children().last().addClass("hide");
+        jQueryElement.attr("data-loading", "true");
     };
 
     DmsTree.stopLoading = function (jQueryElement) {
         jQueryElement = $(jQueryElement);
-        jQueryElement.removeClass("loading");
+        var $loading = jQueryElement.find(".loading-toggle");
+
+        $loading.children().first().addClass("hide");
+        var $last = $loading.children().last();
+        $last.removeClass("hide");
+        jQueryElement.attr("data-loading", "");
     };
 
-    DmsTree.expand = function (clickedElement) {
+    DmsTree.isLoading = function (jQueryElement) {
+        jQueryElement = $(jQueryElement);
+        if (jQueryElement.attr("data-loading")) { return true; }
+        return false;
+    };
+
+    DmsTree.expand = function (clickedElement, docs) {
 
         clickedElement = $(clickedElement);
-        if (!clickedElement.next().next().length) { return; }
 
-        clickedElement.next().next().show();
-        clickedElement
-            .removeClass("plus")
-            .addClass("minus");
+        if (clickedElement.next().prop("tagName") === "UL") { return; }
+
+        var $ul = $("<ul>");
+        for (var i in docs) {
+            var doc = docs[i];
+            var templClass = doc.type + "-template";
+            var $newItem = $("." + templClass)
+                            .clone()
+                            .removeClass(templClass);
+
+            $newItem.find(".name").text(doc.name);
+            $ul.append($newItem);
+        }
+
+        clickedElement.after($ul);
+        $ul.hide().slideDown();
     };
 
     DmsTree.collapse = function (clickedElement) {
-
         clickedElement = $(clickedElement);
-        if (!clickedElement.next().next().length) { return; }
-
-        clickedElement.next().next().hide();
-        clickedElement
-            .removeClass("minus")
-            .addClass("plus");
+        var folderContent = clickedElement.next();
+        folderContent.slideUp(function () {
+            folderContent.remove();
+        });
     };
 };
