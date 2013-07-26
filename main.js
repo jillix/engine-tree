@@ -112,7 +112,6 @@ module.exports = function(config) {
         var $item = $(this);
         $item = $item.closest("li");
 
-        console.log(DmsTree.isLoading($item))
         if (DmsTree.isLoading($item)) { return; }
 
         var dataItem = storage[$item.attr("data-id")];
@@ -138,9 +137,6 @@ module.exports = function(config) {
                 alert(err);
                 return;
             }
-
-            // TODO Hardcode
-            docs = [ { "_id" : "51f156460b0bfb4b9b486cf0", "_tp" : "_list", "name" : "Filtered 3", "type" : "filtered", "_ln" : [ { "_tp" : "_template", "_id" : "user" }, { "_tp" : "_list", "_id" : "51f156460b0bfb4b9b486ce5" } ] }, { "_id" : "51f156460b0bfb4b9b486cf1", "_tp" : "_list", "name" : "Filtered", "type" : "filtered", "_ln" : [ { "_tp" : "_template", "_id" : "user" }, { "_tp" : "_list", "_id" : "51f156460b0bfb4b9b486ce6" } ] } ];
 
             // TODO Just simulating a timeout
             setTimeout(function () {
