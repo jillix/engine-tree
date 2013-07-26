@@ -218,11 +218,13 @@ module.exports = function(config) {
         var $ul = $("<ul>");
         for (var i in docs) {
             var doc = docs[i];
+            storage[doc._id] = doc;
             var templClass = doc.type + "-template";
             var $newItem = $("." + templClass)
                             .clone()
                             .removeClass(templClass);
 
+            $newItem.attr("data-id", doc._id);
             $newItem.find(".name").text(doc.name);
             $ul.append($newItem);
         }
