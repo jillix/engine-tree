@@ -83,23 +83,21 @@ module.exports = function(config) {
         if (!items || !items.length) { return; }
         storage = {};
 
-        var $folderTempl = $(".folder-template", $typeTemplates);
         var $itemsToAppend = $("<div>");
 
 
         for (var i in items) {
             var item = items[i];
+            var $newItem = $("." + item.type + "-template", $typeTemplates).clone();
 
             storage[item._id] = item;
 
-            var $newFolder = $folderTempl.clone();
-
-            $newFolder
+            $newItem
                 .attr("data-id", item._id)
-                .removeClass("folder-template")
+                .removeClass(item.type + "-template")
                 .find(".name").text(item.name)
 
-            $itemsToAppend.append($newFolder);
+            $itemsToAppend.append($newItem);
         }
 
         $tree.append($itemsToAppend.html());
@@ -143,7 +141,7 @@ module.exports = function(config) {
             DmsTree.expand($item, docs);
             DmsTree.stopLoading($item);
             DmsTree.openFolder($item);
-            }, 1000);
+            }, 200);
         });
     });
 
