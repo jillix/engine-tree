@@ -13,6 +13,9 @@ module.exports = function(config) {
     $(DmsTree.dom).on("click", ".list", function () {
         var $item = $(this).closest("li");
 
+        DmsTree.removeActive("*");
+        DmsTree.setActive($item);
+
         var filters = (storage[$item.attr("data-id")] || {}).filters || [];
         DmsTree.emit("setFilters", filters);
         return false;
@@ -56,6 +59,10 @@ module.exports = function(config) {
         });
         return false;
     }).on("click", ".all", function () {
+
+        DmsTree.removeActive(".dms-tree *");
+        DmsTree.setActive($(this));
+
         DmsTree.emit("setFilters", []);
         return false;
     });
@@ -162,6 +169,19 @@ module.exports = function(config) {
         $tree.find("li").hide().slideDown();
     };
 
+
+    ///////////////////////////////
+    // Set active class
+    ///////////////////////////////
+    DmsTree.setActive = function (jQueryElement) {
+        jQueryElement = $(jQueryElement);
+        jQueryElement.addClass("active");
+    };
+
+    DmsTree.removeActive = function (jQueryElement) {
+        jQueryElement = $(jQueryElement);
+        jQueryElement.removeClass("active");
+    };
 
     ///////////////////////////////
     // Open-Close functions
