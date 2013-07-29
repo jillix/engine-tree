@@ -59,6 +59,8 @@ module.exports = function(config) {
             }, 200);
         });
         return false;
+    }).on("click", ".all", function () {
+        DmsTree.emit("setFilter", {});
     });
 
     ///////////////////////////////
