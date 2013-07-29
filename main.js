@@ -5,10 +5,66 @@ module.exports = function(config) {
 
     var DmsTree = this;
     Events.call(DmsTree, config);
-
     var storage = {};
 
-    DmsTree.buildFrom = function (items, options) {
+    ///////////////////
+    // HANDLERS
+    ///////////////////
+    $(DmsTree.dom).on("click", ".list", function () {
+        var $item = $(this).closest("li");
+
+        var storedFilter = {
+            type: (storage[$item.attr("data-id")] || {}).type
+        };
+
+        var filter = $item.attr("data-filter") || storedFilter;
+        DmsTree.emit("setFilter", filter);
+        return false;
+    }).on("click", ".folder", function () {
+
+        var $item = $(this);
+        $item = $item.closest("li");
+
+        if (DmsTree.isLoading($item)) { return; }
+
+        var dataItem = storage[$item.attr("data-id")];
+
+        if (DmsTree.folderIsOpened($item)) {
+            DmsTree.closeFolder($item);
+            DmsTree.collapse($item);
+            return;
+        }
+
+        DmsTree.startLoading($item);
+
+        var crudObj = {
+            t: "_list",
+            q: {
+                "_ln._id": dataItem._id
+            }
+        }
+
+        DmsTree.emit("find", crudObj, function (err, docs) {
+
+            if (err) {
+                alert(err);
+                return;
+            }
+
+            // TODO Just simulating a timeout
+            setTimeout(function () {
+            DmsTree.expand($item, docs);
+            DmsTree.stopLoading($item);
+            DmsTree.openFolder($item);
+            }, 200);
+        });
+        return false;
+    });
+
+    ///////////////////////////////
+    // Generate the tree from items
+    ///////////////////////////////
+    DmsTree.buildFrom = function (items) {
 
         var $tree = $(".dms-tree", DmsTree.dom);
         var $typeTemplates = $(".type-templates", DmsTree.dom);
@@ -38,7 +94,7 @@ module.exports = function(config) {
                         return;
                     }
 
-                    DmsTree.buildFrom(docs, options);
+                    DmsTree.buildFrom(docs);
                 });
 
                 crudObj = {
@@ -85,7 +141,6 @@ module.exports = function(config) {
 
         var $itemsToAppend = $("<div>");
 
-
         for (var i in items) {
             var item = items[i];
             var $newItem = $("." + item.type + "-template", $typeTemplates).clone();
@@ -94,6 +149,7 @@ module.exports = function(config) {
 
             $newItem
                 .attr("data-id", item._id)
+                .attr("data-filter", item._id)
                 .removeClass(item.type + "-template")
                 .find(".name").text(item.name)
 
@@ -104,46 +160,6 @@ module.exports = function(config) {
         $tree.find("li").hide().slideDown();
     };
 
-    $(DmsTree.dom).off("click", ".folder");
-    $(DmsTree.dom).on("click", ".folder", function () {
-
-        var $item = $(this);
-        $item = $item.closest("li");
-
-        if (DmsTree.isLoading($item)) { return; }
-
-        var dataItem = storage[$item.attr("data-id")];
-
-        if (DmsTree.folderIsOpened($item)) {
-            DmsTree.closeFolder($item);
-            DmsTree.collapse($item);
-            return;
-        }
-
-        DmsTree.startLoading($item);
-
-        var crudObj = {
-            t: "_list",
-            q: {
-                "_ln._id": dataItem._id
-            }
-        }
-
-        DmsTree.emit("find", crudObj, function (err, docs) {
-
-            if (err) {
-                alert(err);
-                return;
-            }
-
-            // TODO Just simulating a timeout
-            setTimeout(function () {
-            DmsTree.expand($item, docs);
-            DmsTree.stopLoading($item);
-            DmsTree.openFolder($item);
-            }, 200);
-        });
-    });
 
     ///////////////////////////////
     // Open-Close functions
@@ -207,6 +223,9 @@ module.exports = function(config) {
         return false;
     };
 
+    ////////////////////
+    // EXPAND / COLLAPSE
+    ////////////////////
     DmsTree.expand = function (clickedElement, docs) {
 
         clickedElement = $(clickedElement);
