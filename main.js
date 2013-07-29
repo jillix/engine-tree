@@ -174,12 +174,12 @@ module.exports = function(config) {
     // Set active class
     ///////////////////////////////
     DmsTree.setActive = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         jQueryElement.addClass("active");
     };
 
     DmsTree.removeActive = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         jQueryElement.removeClass("active");
     };
 
@@ -188,7 +188,7 @@ module.exports = function(config) {
     ///////////////////////////////
     DmsTree.openFolder = function (jQueryElement) {
 
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         if (jQueryElement.attr("data-loading")) { return; }
 
         var $openClose = jQueryElement.find(".open-close");
@@ -199,7 +199,7 @@ module.exports = function(config) {
     };
 
     DmsTree.closeFolder = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         if (jQueryElement.attr("data-loading")) { return; }
 
         var $openClose = jQueryElement.find(".open-close");
@@ -210,7 +210,7 @@ module.exports = function(config) {
     };
 
     DmsTree.folderIsOpened = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         var $openClose = jQueryElement.find(".open-close");
 
         if ($openClose.children().last().hasClass("hide")) { return false; }
@@ -221,7 +221,7 @@ module.exports = function(config) {
     // Loading functions
     ///////////////////////////////
     DmsTree.startLoading = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         var $loading = jQueryElement.find(".loading-toggle");
 
         $loading.children().first().removeClass("hide");
@@ -230,7 +230,7 @@ module.exports = function(config) {
     };
 
     DmsTree.stopLoading = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         var $loading = jQueryElement.find(".loading-toggle");
 
         $loading.children().first().addClass("hide");
@@ -240,7 +240,7 @@ module.exports = function(config) {
     };
 
     DmsTree.isLoading = function (jQueryElement) {
-        jQueryElement = $(jQueryElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
         if (jQueryElement.attr("data-loading")) { return true; }
         return false;
     };
@@ -248,11 +248,11 @@ module.exports = function(config) {
     ////////////////////
     // EXPAND / COLLAPSE
     ////////////////////
-    DmsTree.expand = function (clickedElement, docs) {
+    DmsTree.expand = function (jQueryElement, docs) {
 
-        clickedElement = $(clickedElement);
+        jQueryElement = $(jQueryElement, DmsTree.dom);
 
-        if (clickedElement.next().prop("tagName") === "UL") { return; }
+        if (jQueryElement.next().prop("tagName") === "UL") { return; }
 
         var $ul = $("<ul>");
         for (var i in docs) {
@@ -270,13 +270,13 @@ module.exports = function(config) {
             $ul.append($newItem);
         }
 
-        clickedElement.after($ul);
+        jQueryElement.after($ul);
         $ul.hide().slideDown();
     };
 
-    DmsTree.collapse = function (clickedElement) {
-        clickedElement = $(clickedElement);
-        var folderContent = clickedElement.next();
+    DmsTree.collapse = function (jQueryElement) {
+        jQueryElement = $(jQueryElement, DmsTree.dom);
+        var folderContent = jQueryElement.next();
         folderContent.slideUp(function () {
             folderContent.remove();
         });
