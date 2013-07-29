@@ -261,4 +261,6 @@ module.exports = function(config) {
             folderContent.remove();
         });
     };
+
+    DmsTree.emit("ready", config);
 };
