@@ -13,12 +13,8 @@ module.exports = function(config) {
     $(DmsTree.dom).on("click", ".list", function () {
         var $item = $(this).closest("li");
 
-        var storedFilter = {
-            type: (storage[$item.attr("data-id")] || {}).type
-        };
-
-        var filter = $item.attr("data-filter") || storedFilter;
-        DmsTree.emit("setFilter", filter);
+        var filters = (storage[$item.attr("data-id")] || {}).filters || [];
+        DmsTree.emit("setFilters", filters);
         return false;
     }).on("click", ".folder", function () {
 
@@ -60,7 +56,8 @@ module.exports = function(config) {
         });
         return false;
     }).on("click", ".all", function () {
-        DmsTree.emit("setFilter", {});
+        DmsTree.emit("setFilters", []);
+        return false;
     });
 
     ///////////////////////////////
@@ -106,6 +103,9 @@ module.exports = function(config) {
                             $elemMatch: {
                                 _id: items._id
                             }
+                        },
+                        type: {
+                            $ne: "folder"
                         }
                     },
                     f: {
@@ -124,7 +124,7 @@ module.exports = function(config) {
                         .clone()
                         .removeClass("all-template");
 
-                    $(".all", $all).text(docs.length);
+                    $(".all-value", $all).text(docs.length);
                     $tree.prepend($all);
                 });
                 return;
@@ -137,9 +137,10 @@ module.exports = function(config) {
         }
 
         $tree.empty();
+        storage = {};
+
         // an empty array
         if (!items || !items.length) { return; }
-        storage = {};
 
         var $itemsToAppend = $("<div>");
 
@@ -151,7 +152,6 @@ module.exports = function(config) {
 
             $newItem
                 .attr("data-id", item._id)
-                .attr("data-filter", item._id)
                 .removeClass(item.type + "-template")
                 .find(".name").text(item.name)
 
@@ -238,13 +238,15 @@ module.exports = function(config) {
         for (var i in docs) {
             var doc = docs[i];
             storage[doc._id] = doc;
+
             var templClass = doc.type + "-template";
             var $newItem = $("." + templClass)
                             .clone()
                             .removeClass(templClass);
 
-            $newItem.attr("data-id", doc._id);
-            $newItem.find(".name").text(doc.name);
+            $newItem.attr("data-id", doc._id)
+                    .find(".name").text(doc.name);
+
             $ul.append($newItem);
         }
 
