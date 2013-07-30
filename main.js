@@ -17,7 +17,7 @@ module.exports = function(config) {
         DmsTree.setActive($item);
 
         var filters = (storage[$item.attr("data-id")] || {}).filters || [];
-        DmsTree.emit("setFilters", filters);
+        DmsTree.emit("setFilters", filters, true);
         return false;
     }).on("click", ".folder", function () {
 
@@ -63,7 +63,7 @@ module.exports = function(config) {
         DmsTree.removeActive(".dms-tree *");
         DmsTree.setActive($(this));
 
-        DmsTree.emit("setFilters", []);
+        DmsTree.emit("setFilters", [], true);
         return false;
     });
 
