@@ -295,27 +295,32 @@ module.exports = function(config) {
 
         if (!currentTemplate) { return alert("Select a template, first."); }
 
-        listObj._ln = [
-            {
-                _tp: "_template",
-                _id: currentTemplate._id
-            }
-        ];
+        DmsTree.emit("getFilters", function (filters) {
 
-        var crudObj = {
-            t: "_list",
-            d: listObj
-        };
+            listObj.filters = JSON.parse(JSON.stringify(filters));
+            listObj._ln = [
+                {
+                    _tp: "_template",
+                    _id: currentTemplate._id
+                }
+            ];
+            // TODO Parent???
 
-        DmsTree.emit("insert", crudObj, function (err, insertedDoc) {
+            var crudObj = {
+                t: "_list",
+                d: listObj
+            };
 
-            if (err) {
-                alert(err);
-                return;
-            }
+            DmsTree.emit("insert", crudObj, function (err, insertedDoc) {
 
-            if (callback) { callback(err, insertedDoc); }
-            DmsTree.emit("newListInserted", listObj);
+                if (err) {
+                    alert(err);
+                    return;
+                }
+
+                if (callback) { callback(err, insertedDoc); }
+                DmsTree.emit("newListInserted", currentTemplate);
+            });
         });
     };
 
