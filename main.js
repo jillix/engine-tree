@@ -282,5 +282,14 @@ module.exports = function(config) {
         });
     };
 
+
+    //////////////////////
+    // NEW LIST/NEW FOLDER
+    //////////////////////
+    DmsTree.newList = function (listObj, callback) {
+        debugger;
+        // TODO
+    };
+
     DmsTree.emit("ready", config);
 };
