@@ -297,7 +297,12 @@ module.exports = function(config) {
 
         DmsTree.emit("getFilters", function (filters) {
 
-            listObj.filters = JSON.parse(JSON.stringify(filters));
+            for (var i in filters) {
+                delete filters[i].item;
+                delete filters[i].hash;
+            }
+
+            listObj.filters = filters;
             listObj._ln = [
                 {
                     _tp: "_template",
