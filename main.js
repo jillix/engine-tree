@@ -287,8 +287,21 @@ module.exports = function(config) {
     // NEW LIST/NEW FOLDER
     //////////////////////
     DmsTree.newList = function (listObj, callback) {
-        debugger;
-        // TODO
+        var crudObj = {
+            t: "_list",
+            d: listObj
+        };
+
+        DmsTree.emit("insert", crudObj, function (err, insertedDoc) {
+
+            if (err) {
+                alert(err);
+                return;
+            }
+
+            if (callback) { callback(err, insertedDoc); }
+            DmsTree.emit("newListInserted", listObj);
+        });
     };
 
     DmsTree.emit("ready", config);
