@@ -5,7 +5,9 @@ module.exports = function(config) {
 
     var DmsTree = this;
     Events.call(DmsTree, config);
+
     var storage = {};
+    var currentTemplate;
 
     ///////////////////
     // HANDLERS
@@ -78,6 +80,9 @@ module.exports = function(config) {
         switch (Object.prototype.toString.call(items)) {
             // object
             case "[object Object]":
+
+                currentTemplate = items;
+
                 var crudObj = {
                     t: "_list",
                     q: {
@@ -86,7 +91,7 @@ module.exports = function(config) {
                         },
                         "_ln": {
                             $elemMatch: {
-                                _id: items._id,
+                                _id: currentTemplate._id,
                                 _tp: "_template"
                             }
                         }
@@ -108,7 +113,7 @@ module.exports = function(config) {
                     q: {
                         _ln: {
                             $elemMatch: {
-                                _id: items._id
+                                _id: currentTemplate._id
                             }
                         },
                         type: {
@@ -287,6 +292,16 @@ module.exports = function(config) {
     // NEW LIST/NEW FOLDER
     //////////////////////
     DmsTree.newList = function (listObj, callback) {
+
+        if (!currentTemplate) { return alert("Select a template, first."); }
+
+        listObj._ln = [
+            {
+                _tp: "_template",
+                _id: currentTemplate._id
+            }
+        ];
+
         var crudObj = {
             t: "_list",
             d: listObj
