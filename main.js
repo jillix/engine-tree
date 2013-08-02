@@ -9,6 +9,20 @@ module.exports = function(config) {
     var storage = {};
     var currentTemplate;
 
+    var ctrlDown = false;
+
+    $(document).on("keydown", function (e) {
+        if (e.keyCode === 17) {
+            ctrlDown = true;
+            console.log("> true");
+        }
+    }).on("keyup", function (e) {
+        if (e.keyCode === 17) {
+            ctrlDown = false;
+            console.log("> false");
+        }
+    });
+
     ///////////////////
     // HANDLERS
     ///////////////////
@@ -54,10 +68,12 @@ module.exports = function(config) {
 
             // TODO Just simulating a timeout
             setTimeout(function () {
+            DmsTree.removeActive(".dms-tree *");
+            DmsTree.setActive($item);
             DmsTree.expand($item, docs);
             DmsTree.stopLoading($item);
             DmsTree.openFolder($item);
-            }, 200);
+            }, 100);
         });
         return false;
     }).on("click", ".all", function () {
@@ -180,12 +196,46 @@ module.exports = function(config) {
     ///////////////////////////////
     DmsTree.setActive = function (jQueryElement) {
         jQueryElement = $(jQueryElement, DmsTree.dom);
+
+        if (ctrlDown && jQueryElement.hasClass("active")) {
+            return jQueryElement.toggleClass("active");
+        }
+
         jQueryElement.addClass("active");
     };
 
     DmsTree.removeActive = function (jQueryElement) {
+
+        if (ctrlDown) { return; }
+
         jQueryElement = $(jQueryElement, DmsTree.dom);
         jQueryElement.removeClass("active");
+    };
+
+    //////////////////////////////
+    // Get active (item/element)
+    //////////////////////////////
+    DmsTree.getActive = function (item) {
+
+        var jQueryElements = $(DmsTree.dom).find(".active");
+        if (!jQueryElements.length) { return undefined; }
+
+        if (item === "item") {
+            var activeItems = [];
+
+            if (jQueryElements.length === 1) {
+                activeItems.push(storage[jQueryElements.attr("data-id")]);
+                return activeItems
+            }
+
+            jQueryElements.each(function () {
+                activeItems.push(storage[$(this).attr("data-id")]);
+            })
+
+            return activeItems;
+        }
+
+        return jQueryElements;
     };
 
     ///////////////////////////////
@@ -297,6 +347,7 @@ module.exports = function(config) {
 
         DmsTree.emit("getFilters", function (filters) {
 
+            // TODO This will be removed when getFilters will not send dom references
             for (var i in filters) {
                 delete filters[i].item;
                 delete filters[i].hash;
@@ -309,6 +360,7 @@ module.exports = function(config) {
                     _id: currentTemplate._id
                 }
             ];
+
             // TODO Parent???
 
             var crudObj = {
@@ -324,10 +376,77 @@ module.exports = function(config) {
                 }
 
                 if (callback) { callback(err, insertedDoc); }
-                DmsTree.emit("newListInserted", currentTemplate);
+                DmsTree.emit("buildFrom", currentTemplate);
             });
         });
     };
 
+    //////////////////////
+    // EDIT LIST
+    //////////////////////
+    DmsTree.editList = function (listObj, callback) {
+        alert("Editing was not implemented.");
+        if (callback) {
+            callback();
+        }
+    };
+
+    //////////////////////
+    // Delete LIST
+    //////////////////////
+    DmsTree.deleteList = function () {
+
+        var activeItems = DmsTree.getActive("item");
+        if (!activeItems || !activeItems.length) { return alert("No list selected."); }
+
+        // var _ids = [];
+
+        // for (var i in activeItems) {
+        //     _ids.push(activeItems[i]._id);
+        // }
+
+        // TODO Until bind-crud #5 is fixed :: https://github.com/jillix/bind-crud/issues/5
+        // var crudObj = {
+        //     t: "_list",
+        //     q: { _id: {
+        //             $in: _ids
+        //         }
+        //     }
+        // };
+
+
+        var counter = 0;
+        for (var i in activeItems) {
+
+            var crudObj = {
+                t: "_list",
+                q: {
+                    _id: activeItems[i]._id
+                }
+            }
+
+            DmsTree.emit("remove", crudObj, function (err) {
+                if (err) { return alert(err); }
+
+                if (++counter === activeItems.length) {
+                    try {
+                        $(".modal").modal("hide");
+                    } catch (e) {}
+                    DmsTree.getActive().slideUp(function () {
+                        $(this).remove();
+                    });
+                }
+            });
+        }
+
+        // DmsTree.emit("remove", crudObj, function (err) {
+        //     if (err) { return alert(err); }
+        //     DmsTree.emit("buildFrom", currentTemplate);
+        // });
+    };
+
     DmsTree.emit("ready", config);
+    DmsTree.on("refresh", function () {
+        DmsTree.buildFrom(currentTemplate);
+    });
 };
