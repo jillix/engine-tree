@@ -370,6 +370,8 @@ module.exports = function(config) {
 
             DmsTree.emit("insert", crudObj, function (err, insertedDoc) {
 
+                closeModals();
+
                 if (err) {
                     alert(err);
                     return;
@@ -426,12 +428,11 @@ module.exports = function(config) {
             }
 
             DmsTree.emit("remove", crudObj, function (err) {
-                if (err) { return alert(err); }
 
+                closeModals();
+
+                if (err) { return alert(err); }
                 if (++counter === activeItems.length) {
-                    try {
-                        $(".modal").modal("hide");
-                    } catch (e) {}
                     DmsTree.getActive().slideUp(function () {
                         $(this).remove();
                     });
@@ -444,6 +445,12 @@ module.exports = function(config) {
         //     DmsTree.emit("buildFrom", currentTemplate);
         // });
     };
+
+    function closeModals() {
+        try {
+            $(".modal").modal("hide");
+        } catch (e) {}
+    }
 
     DmsTree.emit("ready", config);
     DmsTree.on("refresh", function () {
