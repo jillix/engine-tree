@@ -33,7 +33,9 @@ module.exports = function(config) {
         DmsTree.setActive($item);
 
         var filters = (storage[$item.attr("data-id")] || {}).filters || [];
+
         DmsTree.emit("setFilters", filters, true);
+
         return false;
     }).on("click", ".folder", function () {
 
@@ -68,8 +70,10 @@ module.exports = function(config) {
 
             // TODO Just simulating a timeout
             setTimeout(function () {
+
             DmsTree.removeActive(".dms-tree *");
             DmsTree.setActive($item);
+
             DmsTree.expand($item, docs);
             DmsTree.stopLoading($item);
             DmsTree.openFolder($item);
@@ -198,10 +202,13 @@ module.exports = function(config) {
         jQueryElement = $(jQueryElement, DmsTree.dom);
 
         if (ctrlDown && jQueryElement.hasClass("active")) {
-            return jQueryElement.toggleClass("active");
+            jQueryElement.toggleClass("active");
+        }
+        else {
+            jQueryElement.addClass("active");
         }
 
-        jQueryElement.addClass("active");
+        DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
     };
 
     DmsTree.removeActive = function (jQueryElement) {
@@ -210,6 +217,8 @@ module.exports = function(config) {
 
         jQueryElement = $(jQueryElement, DmsTree.dom);
         jQueryElement.removeClass("active");
+
+        DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
     };
 
     //////////////////////////////
