@@ -68,9 +68,9 @@ module.exports = function(config) {
         DmsTree.startLoading($item);
 
         var crudObj = {
-            t: "_list",
+            t: "000000000000000000000002",
             q: {
-                "_ln._id": dataItem._id
+                "_tp": dataItem._id
             }
         }
 
@@ -119,17 +119,18 @@ module.exports = function(config) {
                 currentTemplate = items;
 
                 var crudObj = {
-                    t: "_list",
+                    t: "000000000000000000000002",
                     q: {
-                        "_ln._tp": {
-                            $ne: "_list"
-                        },
-                        "_ln": {
-                            $elemMatch: {
-                                id: currentTemplate.id,
-                                _tp: "_template"
-                            }
-                        }
+                         "_ln._tp": {
+                             $ne: "000000000000000000000002"
+                         },
+                         "_ln": {
+                             $elemMatch: {
+                                 _id: "51ffb70ad23e4a6777b05979",
+                                 _tp: "000000000000000000000000"
+                             }
+                         }
+
                     }
                 };
 
@@ -144,11 +145,11 @@ module.exports = function(config) {
                 });
 
                 crudObj = {
-                    t: "_list",
+                    t: "000000000000000000000002",
                     q: {
                         _ln: {
                             $elemMatch: {
-                                id: currentTemplate.id
+                                _id: "51ffb70ad23e4a6777b05979"
                             }
                         },
                         type: {
@@ -396,7 +397,7 @@ module.exports = function(config) {
             listObj.filters = filters;
             listObj._ln = [
                 {
-                    _tp: "_template",
+                    _tp: "000000000000000000000002",
                     _id: currentTemplate._id
                 }
             ];
@@ -404,7 +405,7 @@ module.exports = function(config) {
             // TODO Parent???
 
             var crudObj = {
-                t: "_list",
+                t: "000000000000000000000002",
                 d: listObj
             };
 
@@ -448,7 +449,7 @@ module.exports = function(config) {
             newItem.filters = filters;
 
             var crudObj = {
-                t: "_list",
+                t: "000000000000000000000002",
                 q: {
                     _id: activeItem._id
                 },
@@ -493,7 +494,7 @@ module.exports = function(config) {
         for (var i in activeItems) {
 
             var crudObj = {
-                t: "_list",
+                t: "000000000000000000000002",
                 q: {
                     _id: activeItems[i]._id
                 }
