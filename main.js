@@ -6,6 +6,19 @@ module.exports = function(config) {
     var DmsTree = this;
     Events.call(DmsTree, config);
 
+    var DRAGGABLE = {
+        revert: true,
+        zIndex: 2500,
+        start: function () {
+            $(this).effect("highlight", {}, 1000);
+            $(this).css("cursor", "move");
+        },
+        stop: function() {
+            $(this).css("cursor", "default");
+            $(".stack").css('z-index', '500');
+        }
+    };
+
     var storage = {};
     var currentTemplate;
 
@@ -102,6 +115,7 @@ module.exports = function(config) {
             // object
             case "[object Object]":
 
+                debugger;
                 currentTemplate = items;
 
                 var crudObj = {
@@ -112,7 +126,7 @@ module.exports = function(config) {
                         },
                         "_ln": {
                             $elemMatch: {
-                                _id: currentTemplate._id,
+                                id: currentTemplate.id,
                                 _tp: "_template"
                             }
                         }
@@ -134,7 +148,7 @@ module.exports = function(config) {
                     q: {
                         _ln: {
                             $elemMatch: {
-                                _id: currentTemplate._id
+                                id: currentTemplate.id
                             }
                         },
                         type: {
@@ -191,9 +205,7 @@ module.exports = function(config) {
             $itemsToAppend.append($newItem);
         }
 
-        $itemsToAppend.find("li").draggable({
-            revert: true
-        });
+        $itemsToAppend.find("li").draggable(DRAGGABLE);
 
         $itemsToAppend.find(".folder").closest("li").droppable({
             over: DmsTree.dragAndDrop.over,
@@ -345,9 +357,7 @@ module.exports = function(config) {
             $ul.append($newItem);
         }
 
-        $ul.find("li").draggable({
-            revert: true
-        });
+        $ul.find("li").draggable(DRAGGABLE);
 
         $(".folder", $ul).closest("li").droppable({
             over: DmsTree.dragAndDrop.over,
