@@ -115,7 +115,6 @@ module.exports = function(config) {
             // object
             case "[object Object]":
 
-                debugger;
                 currentTemplate = items;
 
                 var crudObj = {
