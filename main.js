@@ -71,10 +71,11 @@ module.exports = function(config) {
             // TODO Just simulating a timeout
             setTimeout(function () {
 
+            DmsTree.expand($item, docs);
+
             DmsTree.removeActive(".dms-tree *");
             DmsTree.setActive($item);
 
-            DmsTree.expand($item, docs);
             DmsTree.stopLoading($item);
             DmsTree.openFolder($item);
             }, 100);
@@ -387,7 +388,7 @@ module.exports = function(config) {
                 }
 
                 if (callback) { callback(err, insertedDoc); }
-                DmsTree.emit("buildFrom", currentTemplate);
+                DmsTree.emit("refresh");
             });
         });
     };
@@ -396,10 +397,42 @@ module.exports = function(config) {
     // EDIT LIST
     //////////////////////
     DmsTree.editList = function (listObj, callback) {
-        alert("Editing was not implemented.");
-        if (callback) {
-            callback();
+
+        var activeItem = DmsTree.getActive("item")[0];
+
+        for (var key in listObj) {
+            activeItem[key] = listObj[key];
         }
+
+        var newItem = JSON.parse(JSON.stringify(activeItem));
+        delete newItem._id;
+
+        DmsTree.emit("getFilters", function (filters) {
+
+            // TODO This will be removed when getFilters will not send dom references
+            for (var i in filters) {
+                delete filters[i].item;
+                delete filters[i].hash;
+            }
+
+            newItem.filters = filters;
+
+            var crudObj = {
+                t: "_list",
+                q: {
+                    _id: activeItem._id
+                },
+                d: newItem
+            };
+
+            DmsTree.emit("update", crudObj, function (err) {
+
+                closeModals();
+                if (err) { return alert(err); }
+
+                DmsTree.emit("refresh");
+            });
+        });
     };
 
     //////////////////////
