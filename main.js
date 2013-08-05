@@ -186,12 +186,22 @@ module.exports = function(config) {
             $newItem
                 .attr("data-id", item._id)
                 .removeClass(item.type + "-template")
-                .find(".name").text(item.name)
+                .find(".name").text(item.name);
 
             $itemsToAppend.append($newItem);
         }
 
-        $tree.append($itemsToAppend.html());
+        $itemsToAppend.find("li").draggable({
+            revert: true
+        });
+
+        $itemsToAppend.find(".folder").closest("li").droppable({
+            over: DmsTree.dragAndDrop.over,
+            out: DmsTree.dragAndDrop.out,
+            drop: DmsTree.dragAndDrop.drop
+        });
+
+        $tree.append($itemsToAppend);
         $tree.find("li").hide().slideDown();
     };
 
@@ -334,6 +344,16 @@ module.exports = function(config) {
 
             $ul.append($newItem);
         }
+
+        $ul.find("li").draggable({
+            revert: true
+        });
+
+        $(".folder", $ul).closest("li").droppable({
+            over: DmsTree.dragAndDrop.over,
+            out: DmsTree.dragAndDrop.out,
+            drop: DmsTree.dragAndDrop.drop
+        });
 
         jQueryElement.after($ul);
         $ul.hide().slideDown();
@@ -486,6 +506,21 @@ module.exports = function(config) {
         //     if (err) { return alert(err); }
         //     DmsTree.emit("buildFrom", currentTemplate);
         // });
+    };
+
+    ////////////////////////////
+    // Drag and drop
+    ///////////////////////////
+    DmsTree.dragAndDrop = {
+        over: function () {
+            $(this).addClass("over");
+        },
+        out: function () {
+            $(this).removeClass("over");
+        },
+        drop: function () {
+            $(this).removeClass("over");
+        }
     };
 
     function closeModals() {
