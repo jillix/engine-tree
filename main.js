@@ -67,12 +67,25 @@ module.exports = function(config) {
 
         DmsTree.startLoading($item);
 
+        // TODO add the template filter also for the children for correctness
+        //var templateFilter;
+        //for (var i in dataItem._ln) {
+        //    if (dataItem._ln[i]._tp === "000000000000000000000000") {
+        //        templateFilter = dataItem._ln[i];
+        //    }
+        //}
+
         var crudObj = {
             t: "000000000000000000000002",
             q: {
-                "_tp": dataItem._id
+                "_ln": {
+                    $elemMatch: {
+                        "_tp": "000000000000000000000002",
+                        "_id": dataItem._id
+                    }
+                }
             }
-        }
+        };
 
         DmsTree.emit("find", crudObj, function (err, docs) {
 
@@ -120,16 +133,15 @@ module.exports = function(config) {
                 var crudObj = {
                     t: "000000000000000000000002",
                     q: {
-                         "_ln._tp": {
-                             $ne: "000000000000000000000002"
-                         },
                          "_ln": {
                              $elemMatch: {
-                                 _id: "51ffb70ad23e4a6777b05979",
-                                 _tp: "000000000000000000000000"
+                                 _tp: "000000000000000000000000",
+                                 _id: items.id
                              }
-                         }
-
+                        },
+                        "_ln._tp": {
+                            $ne: "000000000000000000000002"
+                        }
                     }
                 };
 
@@ -142,7 +154,8 @@ module.exports = function(config) {
 
                     DmsTree.buildFrom(docs);
                 });
-
+// TODO
+return;
                 crudObj = {
                     t: "000000000000000000000002",
                     q: {
@@ -497,7 +510,7 @@ module.exports = function(config) {
                 q: {
                     _id: activeItems[i]._id
                 }
-            }
+            };
 
             DmsTree.emit("remove", crudObj, function (err) {
 
@@ -544,3 +557,4 @@ module.exports = function(config) {
         DmsTree.buildFrom(currentTemplate);
     });
 };
+
