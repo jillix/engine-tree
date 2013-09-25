@@ -2,6 +2,8 @@ M.wrap('bitbucket/jillix/dms-tree/dev/tree.js', function (require, module, expor
 var Bind = require("github/jillix/bind");
 var Events = require("github/jillix/events");
 
+var LIST_TEMPLATE_ID = "000000000000000000000004";
+
 module.exports = function(config) {
 
     var DmsTree = this;
@@ -76,15 +78,11 @@ module.exports = function(config) {
         //    }
         //}
 
+        debugger;
         var crudObj = {
-            t: "000000000000000000000002",
+            t: LIST_TEMPLATE_ID,
             q: {
-                "_ln": {
-                    $elemMatch: {
-                        "_tp": "000000000000000000000002",
-                        "_id": dataItem._id
-                    }
-                }
+
             }
         };
 
@@ -132,17 +130,14 @@ module.exports = function(config) {
                 currentTemplate = items;
 
                 var crudObj = {
-                    t: "000000000000000000000002",
+                    t: LIST_TEMPLATE_ID,
                     q: {
-                         "_ln": {
-                             $elemMatch: {
-                                 _tp: "000000000000000000000000",
-                                 _id: items.id
-                             }
-                        },
-                        "_ln._tp": {
-                            $ne: "000000000000000000000002"
+                        parent: {
+                            $exists: false
                         }
+                    },
+                    o: {
+                        sort: [["type", -1]]
                     }
                 };
 
@@ -155,16 +150,11 @@ module.exports = function(config) {
 
                     DmsTree.buildFrom(docs);
                 });
-// TODO
-return;
+
+                // count
                 crudObj = {
-                    t: "000000000000000000000002",
+                    t: LIST_TEMPLATE_ID,
                     q: {
-                        _ln: {
-                            $elemMatch: {
-                                _id: "51ffb70ad23e4a6777b05979"
-                            }
-                        },
                         type: {
                             $ne: "folder"
                         }
