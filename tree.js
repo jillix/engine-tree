@@ -78,7 +78,6 @@ module.exports = function(config) {
         //    }
         //}
 
-        debugger;
         var crudObj = {
             t: LIST_TEMPLATE_ID,
             q: {
