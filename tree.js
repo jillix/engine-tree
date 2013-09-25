@@ -1,3 +1,4 @@
+M.wrap('bitbucket/jillix/dms-tree/dev/tree.js', function (require, module, exports) {
 var Bind = require("github/jillix/bind");
 var Events = require("github/jillix/events");
 
@@ -558,3 +559,5 @@ return;
     });
 };
 
+
+return module; });
