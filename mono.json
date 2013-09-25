@@ -4,8 +4,9 @@
     "name": "dms-tree",
     "dependencies": [
         "/tree.js",
-        "github/jillix/bind/v0.1.5",
-        "github/jillix/events/v0.1.4",
+        "github/jillix/bind/v0.1.6",
+        "github/jillix/events/v0.1.6",
+        "http://code.jquery.com/ui/1.10.3/jquery-ui.js",
         "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
     ],
     "operations": [ ]
