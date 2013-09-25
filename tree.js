@@ -80,9 +80,7 @@ module.exports = function(config) {
 
         var crudObj = {
             t: LIST_TEMPLATE_ID,
-            q: {
-
-            }
+            q: {}
         };
 
         DmsTree.emit("find", crudObj, function (err, docs) {
@@ -150,33 +148,6 @@ module.exports = function(config) {
                     DmsTree.buildFrom(docs);
                 });
 
-                // count
-                crudObj = {
-                    t: LIST_TEMPLATE_ID,
-                    q: {
-                        type: {
-                            $ne: "folder"
-                        }
-                    },
-                    f: {
-                        $none: 1,
-                        _id: 0
-                    }
-                };
-
-                DmsTree.emit("find", crudObj, function (err, docs) {
-                    if (err) {
-                        alert(err);
-                        return;
-                    }
-
-                    var $all = $(".all-template", $typeTemplates)
-                        .clone()
-                        .removeClass("all-template");
-
-                    $(".all-value", $all).text(docs.length);
-                    $tree.prepend($all);
-                });
                 return;
             // array
             case "[object Array]":
@@ -187,6 +158,28 @@ module.exports = function(config) {
         }
 
         $tree.empty();
+
+        // count
+        crudObj = {
+            t: LIST_TEMPLATE_ID,
+            q: { type: { $ne: "folder" } },
+            f: { $none: 1, _id: 0 }
+        };
+
+        DmsTree.emit("find", crudObj, function (err, docs) {
+            if (err) {
+                alert(err);
+                return;
+            }
+
+            var $all = $(".all-template", $typeTemplates)
+                .clone()
+                .removeClass("all-template");
+
+            $(".all-value", $all).text(docs.length);
+            $tree.prepend($all);
+        });
+
         storage = {};
 
         // an empty array
@@ -390,12 +383,6 @@ module.exports = function(config) {
 
         DmsTree.emit("getFilters", function (filters) {
 
-            // TODO This will be removed when getFilters will not send dom references
-            for (var i in filters) {
-                delete filters[i].item;
-                delete filters[i].hash;
-            }
-
             listObj.filters = filters;
             listObj._ln = [
                 {
@@ -441,12 +428,6 @@ module.exports = function(config) {
         delete newItem._id;
 
         DmsTree.emit("getFilters", function (filters) {
-
-            // TODO This will be removed when getFilters will not send dom references
-            for (var i in filters) {
-                delete filters[i].item;
-                delete filters[i].hash;
-            }
 
             newItem.filters = filters;
 
