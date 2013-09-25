@@ -429,7 +429,7 @@ module.exports = function(config) {
             newItem.filters = filters;
 
             var crudObj = {
-                t: "000000000000000000000002",
+                t: LIST_TEMPLATE_ID,
                 q: {
                     _id: activeItem._id
                 },
@@ -454,44 +454,32 @@ module.exports = function(config) {
         var activeItems = DmsTree.getActive("item");
         if (!activeItems || !activeItems.length) { return alert("No list selected."); }
 
-        // var _ids = [];
+        var _ids = [];
 
-        // for (var i in activeItems) {
-        //     _ids.push(activeItems[i]._id);
-        // }
-
-        // TODO Until bind-crud #5 is fixed :: https://github.com/jillix/bind-crud/issues/5
-        // var crudObj = {
-        //     t: "_list",
-        //     q: { _id: {
-        //             $in: _ids
-        //         }
-        //     }
-        // };
-
-
-        var counter = 0;
         for (var i in activeItems) {
-
-            var crudObj = {
-                t: "000000000000000000000002",
-                q: {
-                    _id: activeItems[i]._id
-                }
-            };
-
-            DmsTree.emit("remove", crudObj, function (err) {
-
-                closeModals();
-
-                if (err) { return alert(err); }
-                if (++counter === activeItems.length) {
-                    DmsTree.getActive().slideUp(function () {
-                        $(this).remove();
-                    });
-                }
-            });
+            _ids.push(activeItems[i]._id);
         }
+
+        var crudObj = {
+            t: LIST_TEMPLATE_ID,
+            q: { _id: {
+                    $in: _ids
+                }
+            }
+        };
+
+
+        DmsTree.emit("remove", crudObj, function (err) {
+
+            closeModals();
+
+            if (err) { return alert(err); }
+            if (++counter === activeItems.length) {
+                DmsTree.getActive().slideUp(function () {
+                    $(this).remove();
+                });
+            }
+        });
 
         // DmsTree.emit("remove", crudObj, function (err) {
         //     if (err) { return alert(err); }
