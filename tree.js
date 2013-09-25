@@ -70,17 +70,14 @@ module.exports = function(config) {
 
         DmsTree.startLoading($item);
 
-        // TODO add the template filter also for the children for correctness
-        //var templateFilter;
-        //for (var i in dataItem._ln) {
-        //    if (dataItem._ln[i]._tp === "000000000000000000000000") {
-        //        templateFilter = dataItem._ln[i];
-        //    }
-        //}
-
         var crudObj = {
             t: LIST_TEMPLATE_ID,
-            q: {}
+            q: {
+                parent: dataItem._id
+            },
+            o: {
+                sort: [["type", -1]]
+            }
         };
 
         DmsTree.emit("find", crudObj, function (err, docs) {
