@@ -474,17 +474,10 @@ module.exports = function(config) {
             closeModals();
 
             if (err) { return alert(err); }
-            if (++counter === activeItems.length) {
-                DmsTree.getActive().slideUp(function () {
-                    $(this).remove();
-                });
-            }
+            DmsTree.getActive().slideUp(function () {
+                $(this).remove();
+            });
         });
-
-        // DmsTree.emit("remove", crudObj, function (err) {
-        //     if (err) { return alert(err); }
-        //     DmsTree.emit("buildFrom", currentTemplate);
-        // });
     };
 
     ////////////////////////////
