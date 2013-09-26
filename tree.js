@@ -391,6 +391,7 @@ module.exports = function(config) {
         DmsTree.emit("getFilters", function (filters) {
 
             listObj.filters = filters;
+            listObj.template = DmsTree.template;
 
             var crudObj = {
                 t: LIST_TEMPLATE_ID,
@@ -426,6 +427,7 @@ module.exports = function(config) {
 
         var newItem = JSON.parse(JSON.stringify(activeItem));
         delete newItem._id;
+        newItem.template = DmsTree.template;
 
         DmsTree.emit("getFilters", function (filters) {
 
@@ -496,6 +498,14 @@ module.exports = function(config) {
         drop: function () {
             $(this).removeClass("over");
         }
+    };
+
+    //////////////////////
+    // Set template
+    //////////////////////
+    DmsTree.setTemplate = function (newTemplate) {
+        DmsTree.template = newTemplate;
+        DmsTree.emit("templateSet", DmsTree.template);
     };
 
     function closeModals() {
