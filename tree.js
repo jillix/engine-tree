@@ -504,7 +504,7 @@ module.exports = function(config) {
     // Set template
     //////////////////////
     DmsTree.setTemplate = function (newTemplate) {
-        DmsTree.template = newTemplate;
+        DmsTree.template = newTemplate._id;
         DmsTree.emit("templateSet", DmsTree.template);
     };
 
