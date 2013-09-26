@@ -36,12 +36,10 @@ module.exports = function(config) {
     $(document).on("keydown", function (e) {
         if (e.keyCode === 17) {
             ctrlDown = true;
-            console.log("> true");
         }
     }).on("keyup", function (e) {
         if (e.keyCode === 17) {
             ctrlDown = false;
-            console.log("> false");
         }
     });
 
@@ -59,7 +57,7 @@ module.exports = function(config) {
         DmsTree.emit("setFilters", filters, true);
 
         return false;
-    }).on("click", ".folder", function () {
+    }).on("click", ".folder", function (e) {
 
         var $item = $(this);
         $item = $item.closest("li");
@@ -74,8 +72,13 @@ module.exports = function(config) {
             return;
         }
 
-        DmsTree.startLoading($item);
 
+        if (e.ctrlKey) {
+            DmsTree.setActive($item);
+            return;
+        }
+
+        DmsTree.startLoading($item);
         var crudObj = {
             t: LIST_TEMPLATE_ID,
             q: {
@@ -383,21 +386,14 @@ module.exports = function(config) {
     DmsTree.newList = function (listObj, callback) {
 
         if (!currentTemplate) { return alert("Select a template, first."); }
+        callback = callback || function () {};
 
         DmsTree.emit("getFilters", function (filters) {
 
             listObj.filters = filters;
-            listObj._ln = [
-                {
-                    _tp: "000000000000000000000002",
-                    _id: currentTemplate._id
-                }
-            ];
-
-            // TODO Parent???
 
             var crudObj = {
-                t: "000000000000000000000002",
+                t: LIST_TEMPLATE_ID,
                 d: listObj
             };
 
@@ -406,11 +402,12 @@ module.exports = function(config) {
                 closeModals();
 
                 if (err) {
+                    callback(err);
                     alert(err);
                     return;
                 }
 
-                if (callback) { callback(err, insertedDoc); }
+                callback(err, insertedDoc);
                 DmsTree.emit("refresh");
             });
         });
