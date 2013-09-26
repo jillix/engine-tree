@@ -82,7 +82,8 @@ module.exports = function(config) {
         var crudObj = {
             t: LIST_TEMPLATE_ID,
             q: {
-                parent: dataItem._id
+                parent: dataItem._id,
+                template: DmsTree.template
             },
             o: {
                 sort: [["type", -1]]
@@ -135,9 +136,8 @@ module.exports = function(config) {
                 var crudObj = {
                     t: LIST_TEMPLATE_ID,
                     q: {
-                        parent: {
-                            $exists: false
-                        }
+                        parent: { $exists: false },
+                        template: DmsTree.template
                     },
                     o: {
                         sort: [["type", -1]]
@@ -168,7 +168,10 @@ module.exports = function(config) {
         // count
         crudObj = {
             t: LIST_TEMPLATE_ID,
-            q: { type: { $ne: "folder" } },
+            q: {
+                type: { $ne: "folder" },
+                template: DmsTree.template
+            },
             f: { $none: 1, _id: 0 }
         };
 
@@ -436,7 +439,8 @@ module.exports = function(config) {
             var crudObj = {
                 t: LIST_TEMPLATE_ID,
                 q: {
-                    _id: activeItem._id
+                    _id: activeItem._id,
+                    template: DmsTree.template
                 },
                 d: newItem
             };
@@ -467,9 +471,9 @@ module.exports = function(config) {
 
         var crudObj = {
             t: LIST_TEMPLATE_ID,
-            q: { _id: {
-                    $in: _ids
-                }
+            q: {
+                _id: { $in: _ids },
+                template: DmsTree.template
             }
         };
 
