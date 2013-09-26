@@ -7,7 +7,13 @@ var LIST_TEMPLATE_ID = "000000000000000000000004";
 module.exports = function(config) {
 
     var DmsTree = this;
+    DmsTree.config = config;
     Events.call(DmsTree, config);
+
+    // run the binds
+    for (var i = 0; i < DmsTree.config.binds.length; ++i) {
+        Bind.call(DmsTree, config.binds[i]);
+    }
 
     var DRAGGABLE = {
         revert: true,
