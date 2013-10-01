@@ -137,7 +137,7 @@ module.exports = function(config) {
                     t: LIST_TEMPLATE_ID,
                     q: {
                         parent: { $exists: false },
-            //            template: DmsTree.template
+                        template: DmsTree.template
                     },
                     o: {
                         sort: [["type", -1]]
@@ -440,7 +440,7 @@ module.exports = function(config) {
                 t: LIST_TEMPLATE_ID,
                 q: {
                     _id: activeItem._id,
-                     template: DmsTree.template
+                    template: DmsTree.template
                 },
                 d: newItem
             };
@@ -572,8 +572,11 @@ module.exports = function(config) {
     //////////////////////
     // Set template
     //////////////////////
-    DmsTree.setTemplate = function (newTemplate) {
-        DmsTree.template = newTemplate._id;
+    DmsTree.setTemplate = function (e, template) {
+
+        if (e._id) { template = e; }
+
+        DmsTree.template = (template || {})._id;
         DmsTree.emit("templateSet", DmsTree.template);
     };
 
