@@ -137,7 +137,7 @@ module.exports = function(config) {
                     t: LIST_TEMPLATE_ID,
                     q: {
                         parent: { $exists: false },
-                        template: DmsTree.template
+            //            template: DmsTree.template
                     },
                     o: {
                         sort: [["type", -1]]
@@ -440,7 +440,7 @@ module.exports = function(config) {
                 t: LIST_TEMPLATE_ID,
                 q: {
                     _id: activeItem._id,
-                    template: DmsTree.template
+                     template: DmsTree.template
                 },
                 d: newItem
             };
@@ -469,24 +469,89 @@ module.exports = function(config) {
             _ids.push(activeItems[i]._id);
         }
 
-        var crudObj = {
-            t: LIST_TEMPLATE_ID,
-            q: {
-                _id: { $in: _ids },
-                template: DmsTree.template
+        var finalIds = [];
+
+        // read all subfolders and files
+        (function readRecursive(id) {
+
+            // all files and subfolders were scanned
+            if (id.constructor === Array && !id.length) {
+
+                // create the crud object
+                var crudObj = {
+                    t: LIST_TEMPLATE_ID,
+                    q: {
+                        _id: { $in: finalIds },
+                        template: DmsTree.template
+                    }
+                };
+
+                // and remove them
+                DmsTree.emit("remove", crudObj, function (err) {
+
+                    // close modals
+                    closeModals();
+
+                    // if an error appeared, show it
+                    if (err) { return alert(err); }
+
+                    // and slide up the lists and remove them from UI
+                    DmsTree.getActive().slideUp(function () {
+                        $(this).remove();
+                    });
+                });
             }
-        };
 
+            // it's an array, read it!
+            if (id.constructor === Array) {
 
-        DmsTree.emit("remove", crudObj, function (err) {
+                // id is an array, read recursive
+                for (var i = 0; i < id.length; ++i) {
 
-            closeModals();
+                    // get id to push
+                    var idToPush = id[i]._id || id[i];
 
-            if (err) { return alert(err); }
-            DmsTree.getActive().slideUp(function () {
-                $(this).remove();
-            });
-        });
+                    // push into the final ids array
+                    finalIds.push(idToPush);
+
+                    // read again
+                    readRecursive(idToPush);
+                }
+                return;
+            }
+
+            // get the entire list object
+            var list = storage[id];
+
+            // it's a list object
+            if (list.type === "folder") {
+
+                // make the crud object
+                var crudObj = {
+                    t: LIST_TEMPLATE_ID,
+                    q: {
+                        parent: list._id,
+                        template: DmsTree.template
+                    }
+                };
+
+                // get subfolders and files
+                DmsTree.emit("find", crudObj, function (err, data) {
+
+                    // if an error appeared, show it
+                    if (err) { return alert(err); }
+
+                    // set data in storage
+                    for (var i = 0; i < data.length; ++i) {
+                        storage[data[i]._id] = data[i];
+                    }
+
+                    // read recursive
+                    readRecursive(data);
+                });
+                return;
+            }
+        })(_ids);
     };
 
     ////////////////////////////
