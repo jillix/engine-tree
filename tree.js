@@ -564,17 +564,17 @@ module.exports = function(config) {
         out: function () {
             $(this).removeClass("over");
         },
-        drop: function (e, drag) {
+        drop: function () {
             // remove class over
             $(this).removeClass("over");
 
             // get jQuery selected items (dropped items)
-            var $itemsToMove = DmsTree.getActive();
+            var $itemsToMove = DmsTree.getActive() || $(arguments[1].draggable);
 
             // TODO Is the target a subfolder of dragged folder?
 
             // check for length
-            if (!$itemsToMove.length) { return; }
+            if (!$itemsToMove || !$itemsToMove.length) { return; }
 
             // get the jQuery move target
             var $moveTarget = $(this);
@@ -590,13 +590,13 @@ module.exports = function(config) {
 
             // make the crud object
             var crudObject = {
+                // TODO https://github.com/jillix/crud/issues/18
                 q: { "_id": { "$in": itemsToMove }, "template": DmsTree.template },
                 d: { "$set": { "parent": moveTargetId } },
                 t: LIST_TEMPLATE_ID
             };
 
             // update the items (set parent as the new id)
-            // TODO https://github.com/jillix/crud/issues/18
             DmsTree.emit("update", crudObject, function (err, data) {
                 if (err) { return alert(err); }
                 DmsTree.emit("refresh");
