@@ -564,8 +564,43 @@ module.exports = function(config) {
         out: function () {
             $(this).removeClass("over");
         },
-        drop: function () {
+        drop: function (e, drag) {
+            // remove class over
             $(this).removeClass("over");
+
+            // get jQuery selected items (dropped items)
+            var $itemsToMove = DmsTree.getActive();
+
+            // TODO Is the target a subfolder of dragged folder?
+
+            // check for length
+            if (!$itemsToMove.length) { return; }
+
+            // get the jQuery move target
+            var $moveTarget = $(this);
+
+            // get data items (from storage) associated with these jQuery elements
+            var moveTargetId = storage[$moveTarget.attr("data-id")]._id;
+
+            // build a list of _ids that will be moved in the new folder
+            var itemsToMove = [];
+            for (var i = 0; i < $itemsToMove.length; ++i) {
+                itemsToMove.push($($itemsToMove[i]).attr("data-id"));
+            }
+
+            // make the crud object
+            var crudObject = {
+                q: { "_id": { "$in": itemsToMove }, "template": DmsTree.template },
+                d: { "$set": { "parent": moveTargetId } },
+                t: LIST_TEMPLATE_ID
+            };
+
+            // update the items (set parent as the new id)
+            // TODO https://github.com/jillix/crud/issues/18
+            DmsTree.emit("update", crudObject, function (err, data) {
+                if (err) { return alert(err); }
+                DmsTree.emit("refresh");
+            });
         }
     };
 
