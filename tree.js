@@ -590,9 +590,9 @@ module.exports = function(config) {
 
             // make the crud object
             var crudObject = {
-                // TODO https://github.com/jillix/crud/issues/18
                 q: { "_id": { "$in": itemsToMove }, "template": DmsTree.template },
                 d: { "$set": { "parent": moveTargetId } },
+                o: { "multi": true },
                 t: LIST_TEMPLATE_ID
             };
 
