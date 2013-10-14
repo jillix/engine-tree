@@ -388,30 +388,100 @@ module.exports = function(config) {
     //////////////////////
     DmsTree.newList = function (listObj, callback) {
 
+        // a template must be selected
+        // TODO Use DmsTree.template
         if (!currentTemplate) { return alert("Select a template, first."); }
+
+        // force callback to be a function
         callback = callback || function () {};
 
+        // get filters
         DmsTree.emit("getFilters", function (filters) {
 
+            // set filters
             listObj.filters = filters;
+
+            // set template
             listObj.template = DmsTree.template;
 
+            // build crud object
             var crudObj = {
                 t: LIST_TEMPLATE_ID,
                 d: listObj
             };
 
+            // insert the object via crud
             DmsTree.emit("insert", crudObj, function (err, insertedDoc) {
 
+                // update UI
                 closeModals();
 
+                // handle error
                 if (err) {
                     callback(err);
                     alert(err);
                     return;
                 }
 
+                // inserted doc is probably an array
+                insertedDoc = insertedDoc[0] || insertedDoc;
+
+                // handle fixed lists
+                if (insertedDoc.type === "fixed") {
+
+                    // build query
+                    var queryFromFilters = queryBuilder(filters).q;
+
+                    // build crud object
+                    var crudObj = {
+                        t: LIST_TEMPLATE_ID,
+                        q: queryFromFilters,
+                        // TODO Don't push duplicate values.
+                        d: { $push: { _ls: insertedDoc._id } }
+                    };
+
+                    // update all items that match these filters
+                    DmsTree.emit("update", crudObj, function (err) {
+
+                        // handle error
+                        if (err) {
+                            callback(err);
+                            alert(err);
+                            return;
+                        }
+
+                        // build crud object
+                        var crudObj = {
+                            t: LIST_TEMPLATE_ID,
+                            q: { _id: insertedDoc._id },
+                            d: { $set: { _ls: insertedDoc._id } }
+                        };
+
+                        // update the inserted document (set _ls
+                        DmsTree.emit("update", crudObj, function (err) {
+
+                            // handle error
+                            if (err) {
+                                callback(err);
+                                alert(err);
+                                return;
+                            }
+
+                            // callback something
+                            callback(err, insertedDoc);
+
+                            // refresh
+                            DmsTree.emit("refresh");
+                        });
+                    });
+
+                    return;
+                }
+
+                // callback something
                 callback(err, insertedDoc);
+
+                // refresh
                 DmsTree.emit("refresh");
             });
         });
@@ -627,5 +697,66 @@ module.exports = function(config) {
     });
 };
 
+// TODO Use bind-filter
+function queryBuilder (filters) {
+
+    var operatorConfig = {
+        '=':        ['',        'mixed'],                                       // or
+        '!=':       ['$ne',     ['number', 'string', 'array']],                 // and
+        '>':        ['$gt',     ['number']],                                    // and
+        '<':        ['$lt',     ['number']],                                    // and
+        '>=':       ['$gte',    ['number']],                                    // and
+        '<=':       ['$lte',    ['number']],                                    // and
+        'in':       ['$in',     ['number', 'string', 'array'],    'split'],     // and ('or' can be achieved by concatenating the arrays)
+        'notin':    ['$nin',    ['number', 'string', 'array'],    'split'],     // or ('and' can be achieved by concatenating the arrays)
+        'all':      ['$all',    ['array'],    'split'],                         // or ('and' can be achieved by concatenating the arrays)
+        'regExp':   ['$regex',  ['string']],                                    // and ('or' is built in the regex syntax)
+        'exists':   ['$exists', 'mixed',    'boolean']                          // makes no sense
+    };
+
+    var query = {};
+    var fieldsInQuery = {};
+
+    for (filter in filters) {
+        if (!filters.hasOwnProperty(filter)) continue;
+
+        if (!filters[filter].disabled && operatorConfig[filters[filter].operator]) {
+
+            var expression = {};
+            var values = filters[filter];
+            var value = values.value;
+            var operator = operatorConfig[values.operator];
+
+            // handle operators
+            if (operator[0]) {
+                expression[values.field] = {};
+                expression[values.field][operator[0]] = value;
+            } else {
+                expression[values.field] = value;
+            }
+
+            // handle or
+            if (fieldsInQuery[values.field]) {
+                if (operator[0] === '') {
+                    // create or array and move the existing expression to the array
+                    if (!query.$or) {
+                        query.$or = [{}];
+                        query.$or[0][values.field] = query[values.field];
+                        delete query[values.field];
+                    }
+                    query.$or.push(expression);
+                } else {
+                    query[values.field][operator[0]] = value;
+                }
+            } else {
+                query[values.field] = expression[values.field];
+            }
+
+            fieldsInQuery[values.field] = 1;
+        }
+    }
+
+    return query;
+}
 
 return module; });
