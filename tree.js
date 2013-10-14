@@ -543,15 +543,15 @@ module.exports = function(config) {
 
         // read all subfolders and files
         (function readRecursive(id) {
+            debugger;
 
             // all files and subfolders were scanned
-            if (id.constructor === Array && !id.length) {
-
+            function deleteItem (itemId) {
                 // create the crud object
                 var crudObj = {
                     t: LIST_TEMPLATE_ID,
                     q: {
-                        _id: { $in: finalIds },
+                        _id: itemId,
                         template: DmsTree.template
                     }
                 };
@@ -566,7 +566,7 @@ module.exports = function(config) {
                     if (err) { return alert(err); }
 
                     // and slide up the lists and remove them from UI
-                    DmsTree.getActive().slideUp(function () {
+                    $("[data-id='" + itemId + "']", DmsTree.dom).slideUp(function () {
                         $(this).remove();
                     });
                 });
@@ -581,12 +581,13 @@ module.exports = function(config) {
                     // get id to push
                     var idToPush = id[i]._id || id[i];
 
-                    // push into the final ids array
-                    finalIds.push(idToPush);
+                    // delete item via crud
+                    deleteItem(idToPush);
 
                     // read again
                     readRecursive(idToPush);
                 }
+
                 return;
             }
 
@@ -620,6 +621,8 @@ module.exports = function(config) {
                     readRecursive(data);
                 });
                 return;
+            } else {
+                deleteItem(list._id);
             }
         })(_ids);
     };
