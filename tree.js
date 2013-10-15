@@ -46,16 +46,33 @@ module.exports = function(config) {
     ///////////////////
     // HANDLERS
     ///////////////////
+    // select a list
     $(DmsTree.dom).on("click", ".list", function () {
+
+        // get item
         var $item = $(this).closest("li");
 
+        // remove active
         DmsTree.removeActive("*");
+
+        // set the new active list
         DmsTree.setActive($item);
 
+        // get filters
         var filters = (storage[$item.attr("data-id")] || {}).filters || [];
 
+        // set originalValue as value if it exists
+        for (var i = 0; i < filters.length; ++i) {
+            if (filters[i].hasOwnProperty("originalValue")) {
+                filters[i].value = filters[i].originalValue;
+                delete filters[i].originalValue;
+            }
+        }
+
+        // setFilters event for bind-filter (reset: true)
         DmsTree.emit("setFilters", filters, true);
 
+        // prevent the default browser behavior
         return false;
     }).on("click", ".folder", function (e) {
 
