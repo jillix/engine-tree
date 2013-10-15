@@ -437,7 +437,7 @@ module.exports = function(config) {
                         t: LIST_TEMPLATE_ID,
                         q: queryFromFilters,
                         // TODO Don't push duplicate values.
-                        d: { $push: { _ls: insertedDoc._id } }
+                        d: { $push: { _li: insertedDoc._id } }
                     };
 
                     // update all items that match these filters
@@ -454,10 +454,10 @@ module.exports = function(config) {
                         var crudObj = {
                             t: LIST_TEMPLATE_ID,
                             q: { _id: insertedDoc._id },
-                            d: { $set: { _ls: insertedDoc._id } }
+                            d: { $set: { _li: insertedDoc._id } }
                         };
 
-                        // update the inserted document (set _ls
+                        // update the inserted document (set _li)
                         DmsTree.emit("update", crudObj, function (err) {
 
                             // handle error
