@@ -447,7 +447,7 @@ module.exports = function(config) {
                 if (insertedDoc.type === "fixed") {
 
                     // build query
-                    var queryFromFilters = queryBuilder(filters).q;
+                    var queryFromFilters = queryBuilder(filters);
 
                     // build crud object
                     var crudObj = {
