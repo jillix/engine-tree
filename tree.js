@@ -543,7 +543,6 @@ module.exports = function(config) {
 
         // read all subfolders and files
         (function readRecursive(id) {
-            debugger;
 
             // all files and subfolders were scanned
             function deleteItem (itemId) {
