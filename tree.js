@@ -406,8 +406,7 @@ module.exports = function(config) {
     DmsTree.newList = function (listObj, callback) {
 
         // a template must be selected
-        // TODO Use DmsTree.template
-        if (!currentTemplate) { return alert("Select a template, first."); }
+        if (!DmsTree.template || !currentTemplate) { return alert("Select a template, first."); }
 
         // force callback to be a function
         callback = callback || function () {};
