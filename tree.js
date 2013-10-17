@@ -504,34 +504,42 @@ module.exports = function(config) {
     //////////////////////
     DmsTree.editList = function (listObj, callback) {
 
-        var activeItem = DmsTree.getActive("item")[0];
+        // _id is required
+        if (!listObj._id) { return alert("Missing _id from listObj."); }
 
-        for (var key in listObj) {
-            activeItem[key] = listObj[key];
-        }
+        // set template field for the list
+        listObj.template = DmsTree.template;
 
-        var newItem = JSON.parse(JSON.stringify(activeItem));
-        delete newItem._id;
-        newItem.template = DmsTree.template;
-
+        // get filters
         DmsTree.emit("getFilters", function (filters) {
 
-            newItem.filters = filters;
+            // set filters
+            listObj.filters = filters;
 
+            // build the crud object
             var crudObj = {
                 t: LIST_TEMPLATE_ID,
                 q: {
-                    _id: activeItem._id,
+                    _id: listObj._id,
                     template: DmsTree.template
                 },
-                d: newItem
+                d: { $set: listObj }
             };
 
+            // delete the _id, we don't need it after we
+            // set the crudObj query
+            delete listObj._id;
+
+            // update the list via crud
             DmsTree.emit("update", crudObj, function (err) {
 
+                // update UI (modals)
                 closeModals();
+
+                // handle error
                 if (err) { return alert(err); }
 
+                // and refresh the list
                 DmsTree.emit("refresh");
             });
         });
