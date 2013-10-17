@@ -114,9 +114,6 @@ module.exports = function(config) {
                 return;
             }
 
-            // TODO Just simulating a timeout
-            setTimeout(function () {
-
             DmsTree.expand($item, docs);
 
             DmsTree.removeActive(".dms-tree *");
@@ -124,7 +121,6 @@ module.exports = function(config) {
 
             DmsTree.stopLoading($item);
             DmsTree.openFolder($item);
-            }, 100);
         });
         return false;
     }).on("click", ".all", function () {
