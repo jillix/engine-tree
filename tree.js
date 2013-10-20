@@ -446,10 +446,16 @@ module.exports = function(config) {
 
                     // build crud object
                     var crudObj = {
-                        t: LIST_TEMPLATE_ID,
+                        // the current template
+                        t: DmsTree.template,
                         q: queryFromFilters,
-                        // TODO Don't push duplicate values.
-                        d: { $push: { _li: insertedDoc._id } }
+                        d: {
+                            // TODO Don't push duplicate values.
+                            $push: { _li: insertedDoc._id },
+                            // TODO This is a hack
+                            $set: {}
+                        },
+                        o: { multi: true }
                     };
 
                     // update all items that match these filters
