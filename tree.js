@@ -58,19 +58,38 @@ module.exports = function(config) {
         // set the new active list
         DmsTree.setActive($item);
 
-        // get filters
-        var filters = (storage[$item.attr("data-id")] || {}).filters || [];
+        // get the data item from storage object
+        var dataItem = storage[$item.attr("data-id")];
 
-        // set originalValue as value if it exists
-        for (var i = 0; i < filters.length; ++i) {
-            if (filters[i].hasOwnProperty("originalValue")) {
-                filters[i].value = filters[i].originalValue;
-                delete filters[i].originalValue;
+        // handle filtered lists
+        if (dataItem.type === "filtered") {
+
+            // get filters
+            var filters = dataItem.filters || [];
+
+            // set originalValue as value if it exists
+            for (var i = 0; i < filters.length; ++i) {
+                if (filters[i].hasOwnProperty("originalValue")) {
+                    filters[i].value = filters[i].originalValue;
+                    delete filters[i].originalValue;
+                }
             }
-        }
 
-        // setFilters event for bind-filter (reset: true)
-        DmsTree.emit("setFilters", filters, true);
+            // setFilters event for bind-filter (reset: true)
+            DmsTree.emit("setFilters", filters, true);
+
+        // handle fixed lists
+        } else if (dataItem.type === "fixed") {
+
+            // build query
+            var query = { _li: dataItem._li }
+
+            // and the options
+            var options = { limit: 20, skip: 0 }
+
+            // emit tableRead event
+            DmsTree.emit("tableRead", query, options);
+        }
 
         // prevent the default browser behavior
         return false;
