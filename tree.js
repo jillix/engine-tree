@@ -710,7 +710,8 @@ module.exports = function(config) {
             var $moveTarget = $(this);
 
             // get data items (from storage) associated with these jQuery elements
-            var moveTargetId = storage[$moveTarget.attr("data-id")]._id;
+            var moveTargetId = (storage[$moveTarget.attr("data-id")] || {})._id;
+
 
             // build a list of _ids that will be moved in the new folder
             var itemsToMove = [];
@@ -726,6 +727,14 @@ module.exports = function(config) {
                 t: LIST_TEMPLATE_ID
             };
 
+            // move to root
+            if (!moveTargetId) {
+                // delete $set
+                delete crudObject.d["$set"];
+                // unset parent
+                crudObject.d["$unset"] = {"parent": ""}
+            }
+
             // update the items (set parent as the new id)
             DmsTree.emit("update", crudObject, function (err, data) {
                 if (err) { return alert(err); }
@@ -733,6 +742,13 @@ module.exports = function(config) {
             });
         }
     };
+
+    // move to root
+    $(".move-to-root").droppable({
+        over: DmsTree.dragAndDrop.over,
+        out:  DmsTree.dragAndDrop.out,
+        drop: DmsTree.dragAndDrop.drop
+    });
 
     //////////////////////
     // Set template
