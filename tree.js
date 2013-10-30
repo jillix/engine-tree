@@ -7,6 +7,8 @@ var LIST_TEMPLATE_ID = "000000000000000000000004";
 module.exports = function(config) {
 
     var DmsTree = this;
+    var ctrlDown = false;
+
     DmsTree.config = config;
     Events.call(DmsTree, config);
 
@@ -19,8 +21,15 @@ module.exports = function(config) {
         revert: true,
         zIndex: 2500,
         start: function () {
-            $(this).effect("highlight", {}, 1000);
-            $(this).css("cursor", "move");
+            var $this = $(this);
+            $this.effect("highlight", {}, 1000);
+            $this.css("cursor", "move");
+
+            if (!ctrlDown) {
+                DmsTree.removeActive("*");
+            }
+
+            DmsTree.setActive($this);
         },
         stop: function() {
             $(this).css("cursor", "default");
@@ -31,7 +40,6 @@ module.exports = function(config) {
     var storage = {};
     var currentTemplate;
 
-    var ctrlDown = false;
 
     $(document).on("keydown", function (e) {
         if (e.keyCode === 17) {
@@ -102,9 +110,12 @@ module.exports = function(config) {
 
         var dataItem = storage[$item.attr("data-id")];
 
+        DmsTree.startLoading($item);
         if (DmsTree.folderIsOpened($item)) {
-            DmsTree.closeFolder($item);
-            DmsTree.collapse($item);
+            DmsTree.collapse($item, function () {
+                DmsTree.stopLoading($item);
+                DmsTree.closeFolder($item);
+            });
             return;
         }
 
@@ -114,7 +125,6 @@ module.exports = function(config) {
             return;
         }
 
-        DmsTree.startLoading($item);
         var crudObj = {
             t: LIST_TEMPLATE_ID,
             q: {
@@ -133,13 +143,13 @@ module.exports = function(config) {
                 return;
             }
 
-            DmsTree.expand($item, docs);
+            DmsTree.expand($item, docs, function () {
+                DmsTree.stopLoading($item);
+                DmsTree.removeActive(".dms-tree *");
+                DmsTree.setActive($item);
 
-            DmsTree.removeActive(".dms-tree *");
-            DmsTree.setActive($item);
-
-            DmsTree.stopLoading($item);
-            DmsTree.openFolder($item);
+                DmsTree.openFolder($item);
+            });
         });
         return false;
     }).on("click", ".all", function () {
@@ -372,7 +382,9 @@ module.exports = function(config) {
     ////////////////////
     // EXPAND / COLLAPSE
     ////////////////////
-    DmsTree.expand = function (jQueryElement, docs) {
+    DmsTree.expand = function (jQueryElement, docs, callback) {
+
+        callback = callback || function () {};
 
         jQueryElement = $(jQueryElement, DmsTree.dom);
 
@@ -403,14 +415,15 @@ module.exports = function(config) {
         });
 
         jQueryElement.after($ul);
-        $ul.hide().slideDown();
+        $ul.hide().slideDown(callback);
     };
 
-    DmsTree.collapse = function (jQueryElement) {
+    DmsTree.collapse = function (jQueryElement, callback) {
         jQueryElement = $(jQueryElement, DmsTree.dom);
         var folderContent = jQueryElement.next();
         folderContent.slideUp(function () {
             folderContent.remove();
+            callback();
         });
     };
 
