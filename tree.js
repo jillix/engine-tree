@@ -69,20 +69,19 @@ module.exports = function(config) {
         // get the data item from storage object
         var dataItem = storage[$item.attr("data-id")];
 
+        // get filters
+        var filters = dataItem.filters || [];
+
+        // set originalValue as value if it exists
+        for (var i = 0; i < filters.length; ++i) {
+            if (filters[i].hasOwnProperty("originalValue")) {
+                filters[i].value = filters[i].originalValue;
+                delete filters[i].originalValue;
+            }
+        }
+
         // handle filtered lists
         if (dataItem.type === "filtered") {
-
-            // get filters
-            var filters = dataItem.filters || [];
-
-            // set originalValue as value if it exists
-            for (var i = 0; i < filters.length; ++i) {
-                if (filters[i].hasOwnProperty("originalValue")) {
-                    filters[i].value = filters[i].originalValue;
-                    delete filters[i].originalValue;
-                }
-            }
-
             // setFilters event for bind-filter (reset: true)
             DmsTree.emit("setFilters", filters, true);
 
@@ -95,8 +94,24 @@ module.exports = function(config) {
             // and the options
             var options = { limit: 20, skip: 0 }
 
-            // emit tableRead event
-            DmsTree.emit("tableRead", query, options);
+            var realFilters = [];
+            // collect the hidden filters
+            for (var i = 0; i < filters.length; ++i) {
+                if (filters[i].hidden) {
+                    realFilters.push(filters[i]);
+                }
+            }
+
+            realFilters.push({
+                field: "_li",
+                operator: "=",
+                value: dataItem._li,
+                hidden: true
+            });
+
+
+            // setFilters event for bind-filter (reset: true, dontFetchData: true)
+            DmsTree.emit("setFilters", realFilters, true);
         }
 
         // prevent the default browser behavior
