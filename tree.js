@@ -26,7 +26,7 @@ module.exports = function(config) {
             $this.css("cursor", "move");
 
             if (!ctrlDown) {
-                DmsTree.removeActive("*");
+                DmsTree.removeActive("li.active");
             }
 
             DmsTree.setActive($this);
@@ -61,7 +61,7 @@ module.exports = function(config) {
         var $item = $(this).closest("li");
 
         // remove active
-        DmsTree.removeActive("*");
+        DmsTree.removeActive("li.active");
 
         // set the new active list
         DmsTree.setActive($item);
@@ -119,7 +119,6 @@ module.exports = function(config) {
             return;
         }
 
-
         if (e.ctrlKey) {
             DmsTree.setActive($item);
             DmsTree.stopLoading($item);
@@ -137,6 +136,8 @@ module.exports = function(config) {
             }
         };
 
+        DmsTree.removeActive("li.active");
+        DmsTree.setActive($item);
         DmsTree.emit("find", crudObj, function (err, docs) {
 
             if (err) {
@@ -146,16 +147,13 @@ module.exports = function(config) {
 
             DmsTree.expand($item, docs, function () {
                 DmsTree.stopLoading($item);
-                DmsTree.removeActive(".dms-tree *");
-                DmsTree.setActive($item);
-
                 DmsTree.openFolder($item);
             });
         });
         return false;
     }).on("click", ".all", function () {
 
-        DmsTree.removeActive(".dms-tree *");
+        DmsTree.removeActive("li.active");
         DmsTree.setActive($(this));
 
         DmsTree.emit("setFilters", [], true);
