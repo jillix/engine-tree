@@ -699,7 +699,6 @@ module.exports = function(config) {
             // get jQuery selected items (dropped items)
             var $itemsToMove = DmsTree.getActive() || $(arguments[1].draggable);
 
-            // TODO Is the target a subfolder of dragged folder?
 
             // check for length
             if (!$itemsToMove || !$itemsToMove.length) { return; }
@@ -707,9 +706,11 @@ module.exports = function(config) {
             // get the jQuery move target
             var $moveTarget = $(this);
 
-            // get data items (from storage) associated with these jQuery elements
-            var moveTargetId = (storage[$moveTarget.attr("data-id")] || {})._id;
+            // get data item
+            var dataItem = storage[$moveTarget.attr("data-id")] || {};
 
+            // get data items (from storage) associated with these jQuery elements
+            var moveTargetId = dataItem._id;
 
             // build a list of _ids that will be moved in the new folder
             var itemsToMove = [];
@@ -731,6 +732,26 @@ module.exports = function(config) {
                 delete crudObject.d["$set"];
                 // unset parent
                 crudObject.d["$unset"] = {"parent": ""}
+            }
+
+            var okToMove = true;
+            // verify if the list can be moved
+            itemsToMoveForLoop:
+            for (var i = 0; i < itemsToMove.length; ++i) {
+                var cItemToMove = itemsToMove[i];
+                var arrayOfParents = DmsTree.getParentsOf (dataItem);
+                for (var ii = 0; ii < arrayOfParents.length; ++ii) {
+                    if (arrayOfParents[ii] === cItemToMove) {
+                        okToMove = false;
+                        break itemsToMoveForLoop;
+                    }
+                }
+            }
+
+            if (!okToMove) {
+                var err = new Error("Cannot move a folder in one of its subfolders.");
+                DmsTree.emit("error", err);
+                return;
             }
 
             // update the items (set parent as the new id)
@@ -759,6 +780,35 @@ module.exports = function(config) {
         DmsTree.emit("templateSet", DmsTree.template);
     };
 
+    /*
+     *  This function will return an array with all parents
+     *  of a list/folder
+     * */
+    // create the parent cache
+    var parentCache = {};
+    DmsTree.getParentsOf = function (dataItem, hash) {
+
+        // get parent of current list
+        var parentOfDataItem = dataItem.parent;
+
+        // no hash, let's create it
+        if (!hash) {
+            hash = Math.random().toString(36).substring(5, 10).toUpperCase();
+            parentCache[hash] = [];
+        }
+
+        // no parent, it's root
+        if (!parentOfDataItem) {
+            return parentCache[hash] || [];
+        }
+
+        // push parent
+        parentCache[hash].push(parentOfDataItem);
+
+        // recursive call
+        return DmsTree.getParentsOf(storage[parentOfDataItem], hash);
+    };
+
     function closeModals() {
         try {
             $(".modal").modal("hide");
@@ -769,6 +819,7 @@ module.exports = function(config) {
     DmsTree.on("refresh", function () {
         DmsTree.buildFrom(currentTemplate);
     });
+
 };
 
 // TODO Use bind-filter
