@@ -122,6 +122,7 @@ module.exports = function(config) {
 
         if (e.ctrlKey) {
             DmsTree.setActive($item);
+            DmsTree.stopLoading($item);
             return;
         }
 
