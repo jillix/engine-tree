@@ -483,9 +483,7 @@ module.exports = function(config) {
                         q: queryFromFilters,
                         d: {
                             // TODO Don't push duplicate values.
-                            $push: { _li: insertedDoc._id },
-                            // TODO This is a hack
-                            $set: {}
+                            $push: { _li: insertedDoc._id }
                         },
                         o: { multi: true }
                     };
