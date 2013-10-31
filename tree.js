@@ -785,29 +785,24 @@ module.exports = function(config) {
      *  This function will return an array with all parents
      *  of a list/folder
      * */
-    // create the parent cache
-    var parentCache = {};
-    DmsTree.getParentsOf = function (dataItem, hash) {
+    DmsTree.getParentsOf = function (dataItem, parents) {
 
         // get parent of current list
         var parentOfDataItem = dataItem.parent;
 
-        // no hash, let's create it
-        if (!hash) {
-            hash = Math.random().toString(36).substring(5, 10).toUpperCase();
-            parentCache[hash] = [];
-        }
+        // no array, let's create it
+        parents = parents || [];
 
         // no parent, it's root
         if (!parentOfDataItem) {
-            return parentCache[hash] || [];
+            return parents;
         }
 
         // push parent
-        parentCache[hash].push(parentOfDataItem);
+        parents.push(parentOfDataItem);
 
         // recursive call
-        return DmsTree.getParentsOf(storage[parentOfDataItem], hash);
+        return DmsTree.getParentsOf(storage[parentOfDataItem], parents);
     };
 
     function closeModals() {
