@@ -10,7 +10,6 @@ module.exports = function(config) {
     var ctrlDown = false;
 
     DmsTree.config = config;
-    Events.call(DmsTree, config);
 
     // run the binds
     for (var i = 0; i < DmsTree.config.binds.length; ++i) {
@@ -244,8 +243,6 @@ module.exports = function(config) {
             $(".all-value", $all).text(docs.length);
             $tree.prepend($all);
         });
-
-        storage = {};
 
         // an empty array
         if (!items || !items.length) { return; }
@@ -818,6 +815,48 @@ module.exports = function(config) {
         return DmsTree.getParentsOf(storage[parentOfDataItem], parents);
     };
 
+    /*
+     *  This function set the filters for .all class inside of the module
+     * */
+    DmsTree.setFiltersForAllElement = function (filters) {
+
+        // generate a random id
+        var newId = Math.random().toString(36).substring(5, 10);
+
+        // get filters
+        var filtersOfAll;
+
+        // default value
+        filters = filters || [];
+
+        // if filters is an object
+        if (filters.constructor === Object) {
+
+            // empty filters of all
+            filtersOfAll = [];
+
+            // iterate the filters obj
+            for (var hash in filters) {
+                if (!filters.hasOwnProperty(hash)) continue;
+
+                // and push each filter
+                filtersOfAll.push(filters[hash]);
+            }
+        } else {
+            filtersOfAll = filters;
+        }
+
+        // set the new id
+        $(".all", self.dom).attr("id", newId);
+
+        // store the new id
+        storage[newId] = {
+            filters: filtersOfAll
+        };
+
+        return filtersOfAll;
+    };
+
     function closeModals() {
         try {
             $(".modal").modal("hide");
@@ -829,6 +868,7 @@ module.exports = function(config) {
         DmsTree.buildFrom(currentTemplate);
     });
 
+    Events.call(DmsTree, config);
 };
 
 // TODO Use bind-filter
