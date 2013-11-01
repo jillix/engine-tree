@@ -456,6 +456,13 @@ module.exports = function(config) {
             // set filters
             listObj.filters = filters;
 
+            // remove _li
+            for (var i = 0; i < listObj.filters.length; ++i) {
+                if (listObj.filters[i].field === "_li") {
+                    listObj.filters.splice(i, 1);
+                }
+            }
+
             // set template
             listObj.template = DmsTree.template;
 
