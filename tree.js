@@ -555,8 +555,10 @@ module.exports = function(config) {
         // get filters
         DmsTree.emit("getFilters", function (filters) {
 
-            // set filters
-            listObj.filters = filters;
+            // set filters, if the list is filtered, if not, keep the old and single filter (_li)
+            if (listObj.type === "filtered") {
+                listObj.filters = filters;
+            }
 
             // build the crud object
             var crudObj = {
