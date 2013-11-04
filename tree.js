@@ -87,30 +87,8 @@ module.exports = function(config) {
         // handle fixed lists
         } else if (dataItem.type === "fixed") {
 
-            // build query
-            var query = { _li: dataItem._li }
-
-            // and the options
-            var options = { limit: 20, skip: 0 }
-
-            var realFilters = [];
-            // collect the hidden filters
-            for (var i = 0; i < filters.length; ++i) {
-                if (filters[i].hidden) {
-                    realFilters.push(filters[i]);
-                }
-            }
-
-            realFilters.push({
-                field: "_li",
-                operator: "=",
-                value: dataItem._li,
-                hidden: true
-            });
-
-
             // setFilters event for bind-filter (reset: true, dontFetchData: true)
-            DmsTree.emit("setFilters", realFilters, true);
+            DmsTree.emit("setFilters", dataItem.filters, true);
         }
 
         // prevent the default browser behavior
