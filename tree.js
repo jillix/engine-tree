@@ -478,8 +478,7 @@ module.exports = function(config) {
                         t: DmsTree.template,
                         q: queryFromFilters,
                         d: {
-                            // TODO Don't push duplicate values.
-                            $push: { _li: insertedDoc._id }
+                            $addToSet: { _li: insertedDoc._id }
                         },
                         o: { multi: true }
                     };
@@ -498,7 +497,18 @@ module.exports = function(config) {
                         var crudObj = {
                             t: LIST_TEMPLATE_ID,
                             q: { _id: insertedDoc._id },
-                            d: { $set: { _li: insertedDoc._id } }
+                            d: {
+                                $set: {
+                                    filters: [
+                                        {
+                                            field: "_li",
+                                            operator: "=",
+                                            hidden: true,
+                                            value: insertedDoc._id
+                                        }
+                                    ]
+                                }
+                            }
                         };
 
                         // update the inserted document (set _li)
