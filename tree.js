@@ -82,17 +82,8 @@ module.exports = function(config) {
             }
         }
 
-        // handle filtered lists
-        if (dataItem.type === "filtered") {
-            // setFilters event for bind-filter (reset: true)
-            DmsTree.emit("setFilters", filters, true);
-
-        // handle fixed lists
-        } else if (dataItem.type === "fixed") {
-
-            // setFilters event for bind-filter (reset: true, dontFetchData: true)
-            DmsTree.emit("setFilters", dataItem.filters, true);
-        }
+        // set filters (reset true) and fetch data
+        DmsTree.emit("setFilters", filters, true);
 
         // prevent the default browser behavior
         return false;
@@ -559,12 +550,12 @@ module.exports = function(config) {
         listObj.template = DmsTree.template;
 
         // get filters
-        DmsTree.emit("getFilters", function (filters) {
+        // DmsTree.emit("getFilters", function (filters) {
 
-            // set filters, if the list is filtered, if not, keep the old and single filter (_li)
-            if (listObj.type === "filtered") {
-                listObj.filters = filters;
-            }
+        //     // set filters, if the list is filtered, if not, keep the old and single filter (_li)
+        //     if (listObj.type === "filtered") {
+        //         listObj.filters = filters;
+        //     }
 
             // build the crud object
             var crudObj = {
@@ -592,7 +583,7 @@ module.exports = function(config) {
                 // and refresh the list
                 DmsTree.emit("refresh");
             });
-        });
+        // });
     };
 
     //////////////////////
