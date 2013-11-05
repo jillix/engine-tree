@@ -65,6 +65,9 @@ module.exports = function(config) {
         // set the new active list
         DmsTree.setActive($item);
 
+        // emit selection changed
+        DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
+
         // get the data item from storage object
         var dataItem = storage[$item.attr("data-id")];
 
@@ -130,6 +133,7 @@ module.exports = function(config) {
 
         DmsTree.removeActive(".active");
         DmsTree.setActive($item);
+
         DmsTree.emit("find", crudObj, function (err, docs) {
 
             if (err) {
@@ -140,6 +144,9 @@ module.exports = function(config) {
             DmsTree.expand($item, docs, function () {
                 DmsTree.stopLoading($item);
                 DmsTree.openFolder($item);
+
+                // emit selection changed
+                DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
             });
         });
         return false;
@@ -147,6 +154,9 @@ module.exports = function(config) {
 
         DmsTree.removeActive(".active");
         DmsTree.setActive($(this));
+
+        // emit selection changed
+        DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
 
         DmsTree.emit("setFilters", (storage[$(this).attr("id")] || {}).filters || [], true);
         return false;
@@ -266,8 +276,6 @@ module.exports = function(config) {
         else {
             jQueryElement.addClass("active");
         }
-
-        DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
     };
 
     DmsTree.removeActive = function (jQueryElement) {
@@ -276,8 +284,6 @@ module.exports = function(config) {
 
         jQueryElement = $(jQueryElement, DmsTree.dom);
         jQueryElement.removeClass("active");
-
-        DmsTree.emit("selectionChanged", DmsTree.getActive("item"));
     };
 
     //////////////////////////////
