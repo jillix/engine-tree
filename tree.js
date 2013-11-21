@@ -10,6 +10,7 @@ module.exports = function(config) {
     var ctrlDown = false;
 
     DmsTree.config = config;
+    DmsTree.config.binds = DmsTree.config.binds || [];
 
     // run the binds
     for (var i = 0; i < DmsTree.config.binds.length; ++i) {
