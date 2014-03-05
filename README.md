@@ -20,5 +20,8 @@ A module that creates a tree list that contains folders, fixed lists and filtere
 
 ### dev
 
+### v0.1.1
+ - Upgrade to Events v0.1.8 and Bin v0.2.1
+
 ### v0.1.0
  - Initial version
