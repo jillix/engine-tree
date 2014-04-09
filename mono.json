@@ -4,11 +4,10 @@
     "name": "dms-tree",
     "dependencies": [
         "/tree.js",
-        "github/jillix/bind/v0.2.1",
-        "github/jillix/events/v0.1.8",
         "http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js",
         "http://code.jquery.com/ui/1.10.3/jquery-ui.js",
-        "http://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"
+        "github/jillix/bind/v0.2.1",
+        "github/jillix/events/v0.1.8"
     ],
     "operations": []
 }
