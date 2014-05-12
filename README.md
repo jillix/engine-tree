@@ -19,9 +19,16 @@ A module that creates a tree list that contains folders, fixed lists and filtere
 ## Changelog
 
 ### dev
+ - add new features here
+
+### v0.1.3
+ - Upgrade to Events v0.1.11 and Bind v0.2.2
+
+### v0.1.2
+ - Removed jQuery
 
 ### v0.1.1
- - Upgrade to Events v0.1.8 and Bin v0.2.1
+ - Upgrade to Events v0.1.8 and Bind v0.2.1
 
 ### v0.1.0
  - Initial version
