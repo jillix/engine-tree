@@ -22,7 +22,10 @@ A module that creates a tree list that contains folders, fixed lists and filtere
  - add new features here
 
 ### v0.2.0
- - Upgrade to Events v0.3.0 and Bind v0.3.0
+ - Upgrade to Events v0.3.0
+
+### v0.2.0
+ - Upgrade to Events v0.2.0 and Bind v0.3.0
  - Upgraded BS to 3.2.0
 
 ### v0.1.3
