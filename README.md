@@ -21,10 +21,10 @@ A module that creates a tree list that contains folders, fixed lists and filtere
 ### dev
  - add new features here
 
-### v0.2.1
+### v0.3.1
  - Removed BS js as dep
 
-### v0.2.0
+### v0.3.0
  - Upgrade to Events v0.3.0
 
 ### v0.2.0
