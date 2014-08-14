@@ -5,7 +5,7 @@
     "dependencies": [
         "/tree.js",
         "http://code.jquery.com/ui/1.10.3/jquery-ui.js",
-        "github/jillix/bind/v0.3.0",
+        "github/jillix/bind/v0.3.1",
         "github/jillix/events/v0.3.0"
     ],
     "operations": []
