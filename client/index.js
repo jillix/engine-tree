@@ -9,7 +9,8 @@ var $ = require("/libs/jquery");
  * @return {undefined}
  */
 exports.init = function() {
-    $(this._config.container).jstree({
+    var self = this;
+    $(self._config.container).jstree({
         plugins: ["dnd", "types", "wholerow" ],
         types: {
             "default": {
@@ -50,6 +51,8 @@ exports.init = function() {
                 }]
             }]
         }
+    }).on("changed.jstree", function (e, data) {
+        self.emit("changed", e, data);
     });
 };
 
