@@ -3,6 +3,13 @@
   "version": "1.0.0",
   "description": "Tree module for Engine.",
   "main": "server/index.js",
+  "components": {
+      "scripts": [
+        "client/index.js",
+        "client/libs/jstree.js",
+        "/libs/jquery.js"
+      ]
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
