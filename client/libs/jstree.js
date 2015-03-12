@@ -5,13 +5,11 @@
 		define(['jquery'], factory);
 	}
 	else if(typeof exports === 'object') {
-		factory(require('jquery'));
+            factory(require("/libs/jquery"));
 	}
 	else if (typeof jQuery !== "undefined") {
 		factory(jQuery);
-	} else {
-            factory(require("/libs/jquery"));
-        }
+	}
 }(function ($, undefined) {
 	"use strict";
 /*!
