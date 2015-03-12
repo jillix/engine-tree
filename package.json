@@ -3,11 +3,15 @@
   "version": "1.0.0",
   "description": "Tree module for Engine.",
   "main": "server/index.js",
+  "public": "public",
   "components": {
       "scripts": [
         "client/index.js",
         "client/libs/jstree.js",
         "/libs/jquery.js"
+      ],
+      "styles": [
+          "public/css/jstree.css"
       ]
   },
   "scripts": {
