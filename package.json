@@ -1,0 +1,23 @@
+{
+  "name": "engine-tree",
+  "version": "1.0.0",
+  "description": "Tree module for Engine.",
+  "main": "server/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:jillix/engine-tree.git"
+  },
+  "keywords": [
+    "jxengine",
+    "tree"
+  ],
+  "author": "jillix <contact@jillix.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jillix/engine-tree/issues"
+  },
+  "homepage": "https://github.com/jillix/engine-tree"
+}
