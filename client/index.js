@@ -44,7 +44,7 @@ exports.init = function() {
                 self.open(null, {
                     path: Object(node.original).path,
                     callback: function (err, data) {
-                        if (err) { return alert(err); }
+                        if (err) { alert(err); }
                         cb(data);
                     }
                 });
