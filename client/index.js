@@ -40,21 +40,23 @@ exports.init = function() {
             }
         },
         core: {
-            data: [{
-                text: "Root node",
-                type: "folder",
-                children: [{
-                    text: "Child node 1",
-                    type: "zip"
-                }, {
-                    text: "Child node 2",
-                    type: "binary"
-                }]
-            }]
+            data: function (node, cb) {
+                self.open(null, {
+                    path: Object(node.original).path,
+                    callback: function (err, data) {
+                        if (err) { return alert(err); }
+                        cb(data);
+                    }
+                });
+            },
         }
     }).on("changed.jstree", function (e, data) {
         self.emit("changed", e, data);
     });
+};
+
+exports.setProject = function (ev, data) {
+    this.project = data.project;
 };
 
 exports.open = function (ev, data) {
@@ -62,5 +64,16 @@ exports.open = function (ev, data) {
     var callback = data.callback || function (err) {
         if (err) { return alert(err); }
     };
-    self.link("getTree", callback).send(null, data.path);
+    if (data.path === undefined) {
+        return callback(null, [{
+            path: "/",
+            type: "folder",
+            text: "/",
+            children: true
+        }]);
+    }
+    self.link("readDir", callback).send(null, {
+        project: self.project,
+        path: data.path
+    });
 };
