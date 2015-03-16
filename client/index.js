@@ -12,7 +12,7 @@ exports.init = function() {
     var self = this;
 
     $(self._config.container).jstree({
-        plugins: ["dnd", "types", "wholerow" ],
+        plugins: ["dnd", "types", "wholerow", "contextmenu", "state", "search"],
         types: {
             "default": {
                 icon: "octicon octicon-file-text"
