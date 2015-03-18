@@ -1,7 +1,7 @@
 var Path = require("path");
 var Fs = require("fs");
 
-const ENGINE_APPS = process.env.ENGINE_APPS;
+const SERVICE_PROJECTS = jxService.paths.projects;
 const FLOW_LINKS = {
     getTree: {
         IN: "readDir",
@@ -25,7 +25,7 @@ exports[FLOW_LINKS.getTree.OUT] = function (link) {
         if (err) { return link.end(err); }
         if (!data.path) { return link.end(new Error("Missing the path.", [])); }
         if (!data.project) { return link.end(new Error("Missing the project.", [])); }
-        var path = Path.join(ENGINE_APPS, data.project, data.path);
+        var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
         Fs.readdir(path, function (err, files) {
             if (err) { return link.end(err, []); }
             files = files.map(function (c) {
