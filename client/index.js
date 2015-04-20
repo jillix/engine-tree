@@ -46,6 +46,7 @@ exports.init = function() {
                     callback: function (err, data) {
                         if (err) { alert(err); }
                         cb(data);
+                        self.emit("pathOpened", null, err, data);
                     }
                 });
             },
@@ -58,6 +59,35 @@ exports.init = function() {
 
 exports.setProject = function (ev, data) {
     this.project = data.project;
+};
+
+exports.openPath = function (ev, data) {
+    if (!data.path) {
+        return;
+    }
+
+
+    var splits = data.path;
+    var self = this;
+
+    if (typeof splits === "string") {
+        splits = split.split("/");
+    }
+
+    function seq(i) {
+        i = i || 0;
+        var c = splits[i];
+        if (!c) {
+            return self.emit("openPathFinished");
+        }
+        debugger
+        self.on("pathOpened", function (ev, err) {
+            debugger
+            seq(i + 1);
+        }, true);
+    }
+
+    seq(data.start || 1);
 };
 
 exports.open = function (ev, data) {
