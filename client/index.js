@@ -11,7 +11,7 @@ var $ = require("/libs/jquery");
 exports.init = function() {
     var self = this;
 
-    $(self._config.container).jstree({
+    self.$jstree = $(self._config.container).jstree({
         plugins: ["dnd", "types", "wholerow", "contextmenu", "search"],
         types: {
             "default": {
@@ -50,12 +50,15 @@ exports.init = function() {
                     }
                 });
             },
+            animation: false
         }
     }).on("changed.jstree", function (e, data) {
         self.selected = data.node.original.path;
         self.emit("changed", e, data);
     }).on("loaded.jstree", function (e, data) {
         self.emit("loaded", e, data);
+    }).on("open_node.jstree", function (e, data) {
+        self.emit("nodeOpened", e, data);
     });
 };
 
@@ -63,11 +66,47 @@ exports.setProject = function (ev, data) {
     this.project = data.project;
 };
 
+function openPath(p, i, $parent) {
+    var self = this;
+    i = i || 0;
+    if (typeof p === "string") {
+        p = ["/"].concat(p.split("/"));
+    }
+
+    if (p[0] !== "/") {
+        p.unshift("/");
+    }
+
+    var c = p[i];
+    if (!c) {
+        return self.emit("openPathFinished");
+    }
+
+    if (!$parent) {
+        $parent = self.$jstree;
+    }
+    $parent = $($parent);
+
+    var $cListItem = $parent.find(">ul>li").find(">a").filter(function () {
+                return $(this).text().trim() === c;
+            });
+
+    if ($cListItem.find(">ul").length) {
+        return openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
+    } else {
+        setTimeout(function() {
+            self.on("nodeOpened", function () {
+                openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
+            }, true);
+            $cListItem.dblclick();
+        }, 0);
+    }
+}
+
 exports.openPath = function (ev, data) {
     if (!data.path) {
         return;
     }
-
 
     var splits = data.path;
     var self = this;
@@ -76,20 +115,7 @@ exports.openPath = function (ev, data) {
         splits = split.split("/");
     }
 
-    function seq(i) {
-        i = i || 0;
-        var c = splits[i];
-        if (!c) {
-            return self.emit("openPathFinished");
-        }
-        debugger
-        self.on("pathOpened", function (ev, err) {
-            debugger
-            seq(i + 1);
-        }, true);
-    }
-
-    seq(data.start || 1);
+    openPath.call(self, splits.slice(data.start || 2));
 };
 
 exports.open = function (ev, data) {
