@@ -49,8 +49,7 @@ exports.init = function() {
                         self.emit("pathOpened", null, err, data);
                     }
                 });
-            },
-            animation: false
+            }
         }
     }).on("changed.jstree", function (e, data) {
         self.selected = data.node.original.path;
