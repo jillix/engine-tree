@@ -54,6 +54,8 @@ exports.init = function() {
     }).on("changed.jstree", function (e, data) {
         self.selected = data.node.original.path;
         self.emit("changed", e, data);
+    }).on("loaded.jstree", function (e, data) {
+        self.emit("loaded", e, data);
     });
 };
 
