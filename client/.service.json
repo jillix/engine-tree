@@ -1,9 +1,0 @@
-{
-    "client": {
-        "methods": {
-        },
-        "emits": {
-            "changed": {}
-        }
-    }
-}

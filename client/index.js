@@ -97,7 +97,11 @@ function openPath(p, i, $parent) {
             self.on("nodeOpened", function () {
                 openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
             }, true);
-            $cListItem.dblclick();
+            if ($cListItem.find("i").hasClass("octicon-file-directory")) {
+                $cListItem.dblclick();
+            } else {
+                $cListItem.click();
+            }
         }, 0);
     }
 }
