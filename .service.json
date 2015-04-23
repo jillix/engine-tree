@@ -2,7 +2,8 @@
     "client": {
         "methods": {
             "setProject": {},
-            "open": {}
+            "open": {},
+            "openPath": {}
         },
         "emits": {
             "changed": {}
