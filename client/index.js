@@ -52,6 +52,7 @@ exports.init = function() {
             }
         }
     }).on("changed.jstree", function (e, data) {
+        if (!data.node) { return; }
         self.selected = data.node.original.path;
         self.emit("changed", e, data);
     }).on("loaded.jstree", function (e, data) {
@@ -87,8 +88,8 @@ function openPath(p, i, $parent) {
     $parent = $($parent);
 
     var $cListItem = $parent.find(">ul>li").find(">a").filter(function () {
-                return $(this).text().trim() === c;
-            });
+        return $(this).text().trim() === c;
+    });
 
     if ($cListItem.find(">ul").length) {
         return openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
@@ -118,7 +119,7 @@ exports.openPath = function (ev, data) {
         splits = split.split("/");
     }
 
-    openPath.call(self, splits.slice(data.start || 2));
+    openPath.call(self, splits.slice(data.start || 3));
 };
 
 exports.open = function (ev, data) {
