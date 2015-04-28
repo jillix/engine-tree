@@ -75,6 +75,9 @@ exports[FLOW_LINKS.getTree.OUT] = function (link) {
                     }
                 }
                 return child;
+            }).sort(function (a, b) {
+                if (a.type === "folder") { return -1; }
+                return 1;
             });
             link.end(null, files);
         });
