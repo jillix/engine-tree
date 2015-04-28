@@ -102,6 +102,7 @@ function openPath(p, i, $parent) {
                 $cListItem.dblclick();
             } else {
                 $cListItem.click();
+                self.emit("openPathFinished");
             }
         }, 0);
     }
