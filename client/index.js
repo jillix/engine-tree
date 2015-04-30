@@ -53,6 +53,9 @@ exports.init = function() {
         }
     }).on("changed.jstree", function (e, data) {
         if (!data.node) { return; }
+        var isFolder = data.node.type === "folder";
+        self[isFolder ? "selectedDir" : "selectedFile"] = data.node.original.path;
+        self.emit("selected." + (isFolder ? "folder" : "file"));
         self.selected = data.node.original.path;
         self.emit("changed", e, data);
     }).on("loaded.jstree", function (e, data) {
