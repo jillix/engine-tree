@@ -26,9 +26,9 @@ exports[FLOW_LINKS.getTree.OUT] = function (link) {
         if (!data.path) { return link.end(new Error("Missing the path.", [])); }
         if (!data.project) { return link.end(new Error("Missing the project.", [])); }
         var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
-        Fs.readdir(path, function (err, files) {
+        Fs.readdir(path, function (err, items) {
             if (err) { return link.end(err, []); }
-            files = files.map(function (c) {
+            items = items.map(function (c) {
                 var cPath = Path.join(path, c);
                 var child = {
                     text: c,
@@ -75,11 +75,17 @@ exports[FLOW_LINKS.getTree.OUT] = function (link) {
                     }
                 }
                 return child;
-            }).sort(function (a, b) {
-                if (a.type === "folder") { return -1; }
-                return 1;
             });
-            link.end(null, files);
+
+
+            function sort(a, b) {
+                return a.text > b.text ? 1 : -1;
+            }
+
+            var files = items.filter(function (c) { return c.type !== "folder"; }).sort(sort);
+            var folders = items.filter(function (c) { return c.type === "folder"; }).sort(sort);
+
+            link.end(null, folders.concat(files));
         });
     });
 };
