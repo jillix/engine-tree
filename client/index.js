@@ -15,7 +15,7 @@ exports.init = function() {
         return function (node) {
             self.link(action, function (err) {
                 if (err) { return alert(err); }
-            }).send({
+            }).send(null, {
                 project: self.project,
                 path: node.path,
                 action: action
