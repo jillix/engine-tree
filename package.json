@@ -5,20 +5,56 @@
   "main": "server/index.js",
   "public": "public",
   "components": {
-      "scripts": [
-        "client/index.js",
-        "client/libs/jstree.js",
-        "/libs/jquery.js"
-      ],
-      "styles": [
-          "public/css/jstree.css"
-      ]
+    "scripts": [
+      "client/index.js",
+      "client/libs/jstree.js",
+      "/libs/jquery.js"
+    ],
+    "styles": [
+      "public/css/jstree.css"
+    ]
   },
   "flow": [
+    {
       "in": "readDir",
-      "out": [{
-       "call": "readDir"
-      }]
+      "out": [
+        {
+          "call": "readDir"
+        }
+      ]
+    },
+    {
+      "in": "newFolder",
+      "out": [
+        {
+          "call": "newFolder"
+        }
+      ]
+    },
+    {
+      "in": "newFile",
+      "out": [
+        {
+          "call": "newFile"
+        }
+      ]
+    },
+    {
+      "in": "rename",
+      "out": [
+        {
+          "call": "rename"
+        }
+      ]
+    },
+    {
+      "in": "delete",
+      "out": [
+        {
+          "call": "delete"
+        }
+      ]
+    }
   ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -36,5 +72,9 @@
   "bugs": {
     "url": "https://github.com/jillix/engine-tree/issues"
   },
-  "homepage": "https://github.com/jillix/engine-tree"
+  "homepage": "https://github.com/jillix/engine-tree",
+  "dependencies": {
+    "engine-tools": "^1.9.0"
+  },
+  "devDependencies": {}
 }
