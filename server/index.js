@@ -2,25 +2,8 @@ var Path = require("path");
 var Fs = require("fs");
 
 const SERVICE_PROJECTS = jxService.paths.projects;
-const FLOW_LINKS = {
-    getTree: {
-        IN: "readDir",
-        OUT: "readDir"
-    }
-};
 
-
-exports.init = function () {
-    var self = this;
-    Object.keys(FLOW_LINKS).forEach(function (c) {
-        self._access[FLOW_LINKS[c].IN] = true;
-        self.on(FLOW_LINKS[c].IN, engine.flow(self, [{
-            call: FLOW_LINKS[c].OUT
-        }]));
-    });
-};
-
-exports[FLOW_LINKS.getTree.OUT] = function (link) {
+exports.readDir = function (link) {
     link.data(function (err, data) {
         if (err) { return link.end(err); }
         if (!data.path) { return link.end(new Error("Missing the path.", [])); }
