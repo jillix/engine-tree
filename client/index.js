@@ -11,6 +11,18 @@ var $ = require("/libs/jquery");
 exports.init = function() {
     var self = this;
 
+    function actionGen(action) {
+        return function (node) {
+            self.link(action, function (err) {
+                if (err) { return alert(err); }
+            }).send({
+                project: self.project,
+                path: node.path,
+                action: action
+            });
+        };
+    }
+
     self.$jstree = $(self._config.container).jstree({
         plugins: ["dnd", "types", "wholerow", "contextmenu", "search"],
         types: {
@@ -56,27 +68,19 @@ exports.init = function() {
             items: {
                 createFolder: {
                     label: "New folder",
-                    action: function (node) {
-
-                    }
+                    action: actionGen("newFolder")
                 },
                 createFile: {
                     label: "New file",
-                    action: function (node) {
-
-                    }
+                    action: actionGen("newFile")
                 },
                 rename: {
                     label: "Rename",
-                    action: function (node) {
-
-                    }
+                    action: actionGen("")
                 },
                 deleteItem: {
                     label: "Delete",
-                    action: function (node) {
-
-                    }
+                    action: actionGen("delete")
                 }
             },
             select_node: false
