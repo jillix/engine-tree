@@ -49,7 +49,37 @@ exports.init = function() {
                         self.emit("pathOpened", null, err, data);
                     }
                 });
-            }
+            },
+            check_callback: true
+        },
+        contextmenu: {
+            items: {
+                createFolder: {
+                    label: "New folder",
+                    action: function (node) {
+
+                    }
+                },
+                createFile: {
+                    label: "New file",
+                    action: function (node) {
+
+                    }
+                },
+                rename: {
+                    label: "Rename",
+                    action: function (node) {
+
+                    }
+                },
+                deleteItem: {
+                    label: "Delete",
+                    action: function (node) {
+
+                    }
+                }
+            },
+            select_node: false
         }
     }).on("changed.jstree", function (e, data) {
         if (!data.node) { return; }
