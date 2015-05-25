@@ -74,7 +74,8 @@
   },
   "homepage": "https://github.com/jillix/engine-tree",
   "dependencies": {
-    "engine-tools": "^1.9.0"
+    "engine-tools": "^1.9.0",
+    "rimraf": "^2.3.4"
   },
   "devDependencies": {}
 }

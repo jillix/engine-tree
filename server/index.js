@@ -1,6 +1,7 @@
 var Path = require("path");
 var Fs = require("fs");
 var EngineTools = require("engine-tools");
+var RimRaf = require("rimraf");
 
 const SERVICE_PROJECTS = jxService.paths.projects;
 
@@ -75,8 +76,7 @@ exports.delete = EngineTools.linkData(function (data, link) {
     if (!data.path) { return link.end(new Error("Missing the path.", [])); }
     if (!data.project) { return link.end(new Error("Missing the project.", [])); }
     var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
-    // TODO
-    link.end(null);
+    RimRaf(path, link.end.bind(link));
 });
 
 exports.newFolder = EngineTools.linkData(function (data, link) {
