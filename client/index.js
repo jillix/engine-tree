@@ -23,16 +23,11 @@ exports.init = function() {
                 item = jsTreeInst.get_node(node.reference);
             }
 
-
             function req (data, act) {
-                self.link(act || action, function (err) {
-                    if (err) { return alert(err); }
-
-                    switch (action) {
-                        case "delete":
-                            jsTreeInst.delete_node(item)
-                            break;
-                    }
+                act = act || action;
+                self.link(act, function (err) {
+                    if (err) { alert(err); }
+                    jsTreeInst.refresh();
                 }).send(null, {
                     project: self.project,
                     path: item.original.path,
