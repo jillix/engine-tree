@@ -40,7 +40,7 @@
       ]
     },
     {
-      "in": "rename",
+      "in": "renamed",
       "out": [
         {
           "call": "rename"
