@@ -125,7 +125,7 @@ exports.init = function() {
         self.emit("loaded", e, data);
     }).on("open_node.jstree", function (e, data) {
         self.emit("nodeOpened", e, data);
-    }).on("rename_node.jstree", actionGen("rename"));
+    }).on("rename_node.jstree", actionGen("renamed"));
 };
 
 exports.setProject = function (ev, data) {

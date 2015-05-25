@@ -82,5 +82,14 @@ exports.delete = EngineTools.linkData(function (data, link) {
 exports.newFolder = EngineTools.linkData(function (data, link) {
     if (!data.path) { return link.end(new Error("Missing the path.", [])); }
     if (!data.project) { return link.end(new Error("Missing the project.", [])); }
+    // TODO mkdir p?
+});
 
+exports.rename = EngineTools.linkData(function (data, link) {
+    if (!data.path) { return link.end(new Error("Missing the path.", [])); }
+    if (!data.project) { return link.end(new Error("Missing the project.", [])); }
+    if (!data.data || !data.data.name) { return link.end(new Error("Missing the new name.")); }
+    var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
+    var newPath = path.split("/").slice(0, -1).concat([data.data.name]).join("/");
+    Fs.rename(path, newPath, link.end.bind(link));
 });
