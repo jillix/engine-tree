@@ -12,23 +12,39 @@ exports.init = function() {
     var self = this;
 
     function actionGen(action) {
-        return function (node) {
-            var jsTreeInst = $.jstree.reference(node.reference);
-            var item = jsTreeInst.get_node(node.reference);
+        return function (node, data) {
+            var item = node;
+            if (data && data.node) {
+                item = data.node;
+            } else {
+                var jsTreeInst = $.jstree.reference(node.reference);
+                item = jsTreeInst.get_node(node.reference);
+            }
 
-            self.link(action, function (err) {
-                if (err) { return alert(err); }
+            function req (data) {
+                self.link(action, function (err) {
+                    if (err) { return alert(err); }
 
-                switch (action) {
-                    case "delete":
-                        jsTreeInst.delete_node(item)
-                        break;
-                }
-            }).send(null, {
-                project: self.project,
-                path: item.original.path,
-                action: action
-            });
+                    switch (action) {
+                        case "delete":
+                            jsTreeInst.delete_node(item)
+                            break;
+                    }
+                }).send(null, {
+                    project: self.project,
+                    path: item.original.path,
+                    action: action,
+                    data: data
+                });
+            }
+
+            if (action === "do_rename") {
+                return jsTreeInst.edit(item);
+            } else if (action === "renamed") {
+                return req({ name: item.text });
+            }
+
+            req();
         };
     }
 
@@ -88,7 +104,7 @@ exports.init = function() {
                 rename: {
                     label: "Rename",
                     icon: "octicon octicon-pencil",
-                    action: actionGen("")
+                    action: actionGen("do_rename")
                 },
                 deleteItem: {
                     label: "Delete",
@@ -109,7 +125,7 @@ exports.init = function() {
         self.emit("loaded", e, data);
     }).on("open_node.jstree", function (e, data) {
         self.emit("nodeOpened", e, data);
-    });
+    }).on("rename_node.jstree", actionGen("rename"));
 };
 
 exports.setProject = function (ev, data) {
