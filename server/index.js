@@ -69,7 +69,7 @@ exports.readDir = EngineTools.linkData(function (data, link) {
 
         link.end(null, folders.concat(files));
     });
-};
+});
 
 exports.delete = EngineTools.linkData(function (data, link) {
     debugger
