@@ -2,6 +2,8 @@ var Path = require("path");
 var Fs = require("fs");
 var EngineTools = require("engine-tools");
 var RimRaf = require("rimraf");
+var Streamp = require("streamp");
+var Mkdirp = require("mkdirp");
 
 const SERVICE_PROJECTS = jxService.paths.projects;
 
@@ -82,7 +84,21 @@ exports.delete = EngineTools.linkData(function (data, link) {
 exports.newFolder = EngineTools.linkData(function (data, link) {
     if (!data.path) { return link.end(new Error("Missing the path.", [])); }
     if (!data.project) { return link.end(new Error("Missing the project.", [])); }
-    // TODO mkdir p?
+    if (!data.data || !data.data.name) { return link.end(new Error("Missing the new name.")); }
+    var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
+    var newPath = path.split("/").slice(0, -1).concat([data.data.name]).join("/");
+    Mkdirp(newPath, link.end.bind(link));
+});
+
+exports.newFile = EngineTools.linkData(function (data, link) {
+    if (!data.path) { return link.end(new Error("Missing the path.", [])); }
+    if (!data.project) { return link.end(new Error("Missing the project.", [])); }
+    if (!data.data || !data.data.name) { return link.end(new Error("Missing the new name.")); }
+    var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
+    var newPath = path.split("/").slice(0, -1).concat([data.data.name]).join("/");
+    var stream = new Streamp.writable(newPath);
+    stream.end("");
+    link.end();
 });
 
 exports.rename = EngineTools.linkData(function (data, link) {

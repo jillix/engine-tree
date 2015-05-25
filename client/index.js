@@ -14,15 +14,18 @@ exports.init = function() {
     function actionGen(action) {
         return function (node, data) {
             var item = node;
+            var jsTreeInst = null;
             if (data && data.node) {
                 item = data.node;
+                jsTreeInst = $.jstree.reference(item);
             } else {
-                var jsTreeInst = $.jstree.reference(node.reference);
+                jsTreeInst = $.jstree.reference(item.reference);
                 item = jsTreeInst.get_node(node.reference);
             }
 
-            function req (data) {
-                self.link(action, function (err) {
+
+            function req (data, act) {
+                self.link(act || action, function (err) {
                     if (err) { return alert(err); }
 
                     switch (action) {
@@ -33,21 +36,35 @@ exports.init = function() {
                 }).send(null, {
                     project: self.project,
                     path: item.original.path,
-                    action: action,
                     data: data
                 });
             }
 
-            if (action === "do_rename") {
-                return jsTreeInst.edit(item);
-            } else if (action === "renamed") {
-                return req({ name: item.text });
+            switch (action) {
+                case "do_rename":
+                    return jsTreeInst.edit(item);
+                case "do_newFolder":
+                case "do_newFile":
+                    var newNode = jsTreeInst.create_node(item.parent);
+                    jsTreeInst.edit(newNode);
+                    self.tmp.creating = action.replace("do_", "");
+                    self.tmp.path = item.original.path
+                    return;
+                case "renamed":
+                    if (self.tmp.creating) {
+                        item.original.path = self.tmp.path;
+                    }
+                    req({ name: item.text }, self.tmp.creating);
+                    self.tmp.creating = null;
+                    self.tmp.path = null;
+                    return;
             }
 
             req();
         };
     }
 
+    self.tmp = {};
     self.$jstree = $(self._config.container).jstree({
         plugins: ["dnd", "types", "wholerow", "contextmenu", "search"],
         types: {
@@ -94,12 +111,12 @@ exports.init = function() {
                 createFolder: {
                     label: "New folder",
                     icon : "octicon octicon-file-directory",
-                    action: actionGen("newFolder")
+                    action: actionGen("do_newFolder")
                 },
                 createFile: {
                     label: "New file",
                     icon: "octicon octicon-file-text",
-                    action: actionGen("newFile")
+                    action: actionGen("do_newFile")
                 },
                 rename: {
                     label: "Rename",
