@@ -13,11 +13,20 @@ exports.init = function() {
 
     function actionGen(action) {
         return function (node) {
+            var jsTreeInst = $.jstree.reference(node.reference);
+            var item = jsTreeInst.get_node(node.reference);
+
             self.link(action, function (err) {
                 if (err) { return alert(err); }
+
+                switch (action) {
+                    case "delete":
+                        jsTreeInst.delete_node(item)
+                        break;
+                }
             }).send(null, {
                 project: self.project,
-                path: node.path,
+                path: item.original.path,
                 action: action
             });
         };
@@ -68,18 +77,22 @@ exports.init = function() {
             items: {
                 createFolder: {
                     label: "New folder",
+                    icon : "octicon octicon-file-directory",
                     action: actionGen("newFolder")
                 },
                 createFile: {
                     label: "New file",
+                    icon: "octicon octicon-file-text",
                     action: actionGen("newFile")
                 },
                 rename: {
                     label: "Rename",
+                    icon: "octicon octicon-pencil",
                     action: actionGen("")
                 },
                 deleteItem: {
                     label: "Delete",
+                    icon: "octicon octicon-x",
                     action: actionGen("delete")
                 }
             },
