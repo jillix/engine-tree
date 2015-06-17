@@ -1,7 +1,7 @@
 // Dependencies
 var $ = require("/libs/jquery");
 
-/**
+/*!
  * init
  *
  * @name init
@@ -140,6 +140,18 @@ exports.init = function() {
     }).on("rename_node.jstree", actionGen("renamed"));
 };
 
+/**
+ * setProject
+ * Sets the project name internally.
+ *
+ * @name setProject
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data An object containing the following fields:
+ *
+ *  - `project` (String): The project name.
+ *
+ */
 exports.setProject = function (ev, data) {
     this.project = data.project;
 };
@@ -186,6 +198,18 @@ function openPath(p, i, $parent) {
     }
 }
 
+/**
+ * openPath
+ * Opens a path to a file or directory.
+ *
+ * @name openPath
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data An object containing the following fields:
+ *
+ *  - `path` (Strnig): The path to open.
+ *  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
+ */
 exports.openPath = function (ev, data) {
     if (!data.path) {
         return;
@@ -201,6 +225,17 @@ exports.openPath = function (ev, data) {
     openPath.call(self, splits.slice(data.start || 3));
 };
 
+/**
+ * open
+ * Opens a file/directory, in the current directory.
+ *
+ * @name open
+ * @function
+ * @param {Event} ev The event object.
+ * @param {Object} data An object containing the following fields:
+ *
+ *  - `path` (Strnig): The path to open.
+ */
 exports.open = function (ev, data) {
     var self = this;
     var callback = data.callback || function (err) {
