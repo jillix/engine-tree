@@ -73,7 +73,7 @@ exports.init = function() {
 
     self.tmp = {};
     self.$jstree = $(self._config.container).jstree({
-        plugins: ["dnd", "types", "wholerow", "contextmenu", "search"],
+        plugins: ["dnd", "types", "wholerow", "contextmenu", "search", "conditionalselect"],
         types: {
             "default": {
                 icon: "octicon octicon-file-text"
@@ -99,6 +99,15 @@ exports.init = function() {
             zip: {
                 icon : "octicon octicon-file-zip"
             }
+        },
+        conditionalselect: function (node, cb) {
+            if (self._config.alwaysSelect) {
+                return cb(true);
+            }
+            self.emit("beforeSelect");
+            self.on("_beforeSelectRes", function (ev, data) {
+                cb(data.select);
+            }, true);
         },
         core: {
             data: function (node, cb) {
