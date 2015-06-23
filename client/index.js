@@ -1,6 +1,18 @@
 // Dependencies
 var $ = require("/libs/jquery");
 
+// Add the custom select plugin
+$.jstree.defaults.conditionalselect = function (node, cb) { cb(true); };
+$.jstree.plugins.conditionalselect = function (options, parent) {
+    this.activate_node = function (obj, e) {
+        this.settings.conditionalselect.call(this, this.get_node(obj), function (select) {
+            if (select) {
+                parent.activate_node.call(this, obj, e);
+            }
+        });
+    };
+};
+
 /*!
  * init
  *
