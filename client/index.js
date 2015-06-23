@@ -18,7 +18,6 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
  *
  * @name init
  * @function
- * @return {undefined}
  */
 exports.init = function() {
     var self = this;
