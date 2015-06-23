@@ -20,6 +20,8 @@ Tree module for Engine.
 ## Configuration
 
  - `container` (String): The query selector of the tree container.
+ - `alwaysSelect` (Boolean): If `true`, the nodes will be selected always
+   without any callback from another module.
 
 ## Events
 
@@ -29,6 +31,11 @@ Tree module for Engine.
  - :arrow_up: `changed" - Selection changed.
  - :arrow_up: `loaded` - The tree was loaded.
  - :arrow_up: `nodeOpened` - A node was opened.
+ - :arrow_up: `beforeSelect` - Emitted before selecting a node.
+ - :arrow_up: `openPathFinished` - The full path was loaded.
+
+ - :arrow_down: `_beforeSelectRes` - An instance should emit this event and
+   data should contain the `select` boolean field.
 
 ## Documentation
 For full API reference, see the [DOCUMENTATION.md][docs] file.
