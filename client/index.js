@@ -5,9 +5,10 @@ var $ = require("/libs/jquery");
 $.jstree.defaults.conditionalselect = function (node, cb) { cb(true); };
 $.jstree.plugins.conditionalselect = function (options, parent) {
     this.activate_node = function (obj, e) {
+        var that = this;
         this.settings.conditionalselect.call(this, this.get_node(obj), function (select) {
             if (select) {
-                parent.activate_node.call(this, obj, e);
+                parent.activate_node.call(that, obj, e);
             }
         });
     };
@@ -103,10 +104,17 @@ exports.init = function() {
             if (self._config.alwaysSelect) {
                 return cb(true);
             }
-            self.emit("beforeSelect");
+
+            // TODO This is more or less a hack -- currently we don't need
+            //      to do anything before selecting a folder
+            if (node.original.type === "folder") {
+                return cb(true);
+            }
+
             self.on("_beforeSelectRes", function (ev, data) {
                 cb(data.select);
             }, true);
+            self.emit("beforeSelect");
         },
         core: {
             data: function (node, cb) {
