@@ -6,7 +6,17 @@
             "openPath": {}
         },
         "emits": {
-            "changed": {}
+            "changed": {},
+            "beforeSelect": {},
+            "pathOpened": {},
+            "selected.isFolder": {},
+            "selected.file": {},
+            "loaded": {},
+            "nodeOpened": {},
+            "openPathFinished": {}
+        },
+        "listens": {
+            "_beforeSelectRes": {}
         }
     }
 }
