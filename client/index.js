@@ -14,6 +14,28 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
     };
 };
 
+// emit function
+// TODO test event in data
+// TODO add error
+function emit(eventName, data) {
+    var self = this;
+    self._streams = self._streams || {};
+
+    // create stream
+    var str = self._streams[eventName] || (self._streams[eventName] = self.flow(eventName));
+    str.write(null, data);
+}
+
+function on(eventName, callback) {
+    var self = this;
+
+    self[eventName] = function (stream) {
+        stream.data(function (err, data) {
+            callback.call(self, err, data);
+        });
+    }
+}
+
 /*!
  * init
  *
@@ -22,6 +44,8 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
  */
 exports.init = function() {
     var self = this;
+    self.emit = emit;
+    self.on = on;
 
     function actionGen(action) {
         return function (node, data) {
@@ -37,10 +61,17 @@ exports.init = function() {
 
             function req (data, act) {
                 act = act || action;
-                self.link(act, function (err) {
+
+                var str = self.flow({
+                    "call": self._name + "/" + act
+                });
+
+                str.data(function (err, data) {
                     if (err) { alert(err); }
                     jsTreeInst.refresh();
-                }).send(null, {
+                });
+
+                self.write(null, {
                     project: self.project,
                     path: item.original.path,
                     data: data
@@ -101,6 +132,7 @@ exports.init = function() {
             }
         },
         conditionalselect: function (node, cb) {
+
             if (self._config.alwaysSelect) {
                 return cb(true);
             }
@@ -111,19 +143,23 @@ exports.init = function() {
                 return cb(true);
             }
 
-            self.on("_beforeSelectRes", function (ev, data) {
+            self.on("_beforeSelectRes", function (err, data) {
+                console.log(data);
                 cb(data.select);
             }, true);
             self.emit("beforeSelect");
         },
         core: {
             data: function (node, cb) {
-                self.open(null, {
+                // todo add err
+                // call open method
+                self.emit("open", {
                     path: Object(node.original).path,
                     callback: function (err, data) {
                         if (err) { alert(err); }
                         cb(data);
-                        self.emit("pathOpened", null, err, data);
+                        // TODO add err
+                        self.emit("pathOpened", data);
                     }
                 });
             },
@@ -156,16 +192,22 @@ exports.init = function() {
         }
     }).on("changed.jstree", function (e, data) {
         if (!data.node) { return; }
+
         var isFolder = data.node.type === "folder";
         self[isFolder ? "selectedDir" : "selectedFile"] = data.node.original.path;
-        self.emit("selected." + (isFolder ? "folder" : "file"));
+        var emitData = {};
+        emitData[isFolder ? "selectedDir" : "selectedFile"] = data.node.original.path;
+        self.emit("selected." + (isFolder ? "folder" : "file"), emitData);
         self.selected = data.node.original.path;
-        self.emit("changed", e, data);
+        self.emit("changed", data);
     }).on("loaded.jstree", function (e, data) {
-        self.emit("loaded", e, data);
+        self.emit("loaded", data);
     }).on("open_node.jstree", function (e, data) {
-        self.emit("nodeOpened", e, data);
+        self.emit("nodeOpened", data);
     }).on("rename_node.jstree", actionGen("renamed"));
+
+    // module is ready
+    self.emit("ready");
 };
 
 /**
@@ -180,13 +222,23 @@ exports.init = function() {
  *  - `project` (String): The project name.
  *
  */
-exports.setProject = function (ev, data) {
-    this.project = data.project;
+exports.setProject = function (stream) {
+    var self = this;
+
+    stream.data(function (err, data) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        self.project = data.project;
+    });
 };
 
 function openPath(p, i, $parent) {
     var self = this;
     i = i || 0;
+
     if (typeof p === "string") {
         p = ["/"].concat(p.split("/"));
     }
@@ -213,6 +265,7 @@ function openPath(p, i, $parent) {
         return openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
     } else {
         setTimeout(function() {
+
             self.on("nodeOpened", function () {
                 openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
             }, true);
@@ -238,19 +291,27 @@ function openPath(p, i, $parent) {
  *  - `path` (Strnig): The path to open.
  *  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
  */
-exports.openPath = function (ev, data) {
-    if (!data.path) {
-        return;
-    }
-
-    var splits = data.path;
+exports.openPath = function (stream) {
     var self = this;
 
-    if (typeof splits === "string") {
-        splits = split.split("/");
-    }
+    stream.data(function (err, data) {
 
-    openPath.call(self, splits.slice(data.start || 3));
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        if (!data.path) {
+            return;
+        }
+
+        var splits = data.path;
+
+        if (typeof splits === "string") {
+            splits = split.split("/");
+        }
+
+        openPath.call(self, splits.slice(data.start || 3));
+    });
 };
 
 /**
@@ -264,21 +325,36 @@ exports.openPath = function (ev, data) {
  *
  *  - `path` (Strnig): The path to open.
  */
-exports.open = function (ev, data) {
+exports.open = function (stream) {
     var self = this;
-    var callback = data.callback || function (err) {
-        if (err) { return alert(err); }
-    };
-    if (data.path === undefined) {
-        return callback(null, [{
-            path: "/",
-            type: "folder",
-            text: "/",
-            children: true
-        }]);
-    }
-    self.link("readDir", callback).send(null, {
-        project: self.project,
-        path: data.path
+    stream.data(function (err, data) {
+
+        if (err) {
+            return console.error(new Error(err));
+        }
+
+        var callback = data.callback || function (err) {
+            if (err) { return alert(err); }
+        };
+
+        if (data.path === undefined) {
+            return callback(null, [{
+                path: "/",
+                type: "folder",
+                text: "/",
+                children: true
+            }]);
+        }
+
+        // create stream
+        var str = self.flow({
+            "call": self._name + "/readDir"
+        });
+
+        str.data(callback);
+        str.write(null, {
+            project: self.project,
+            path: data.path
+        });
     });
 };
