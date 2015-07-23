@@ -26,6 +26,7 @@ function emit(eventName, data) {
     str.write(null, data);
 }
 
+// this is not exactly correct
 function on(eventName, callback) {
     var self = this;
 
@@ -143,11 +144,11 @@ exports.init = function() {
                 return cb(true);
             }
 
-            self.on("_beforeSelectRes", function (err, data) {
-                console.log(data);
-                cb(data.select);
-            }, true);
-            self.emit("beforeSelect");
+            self.emit("beforeSelect", {
+                callback: function (err, data) {
+                    cb(data.select);
+                }
+            });
         },
         core: {
             data: function (node, cb) {
@@ -216,8 +217,7 @@ exports.init = function() {
  *
  * @name setProject
  * @function
- * @param {Event} ev The event object.
- * @param {Object} data An object containing the following fields:
+ * @param {Stream} stream The stream object
  *
  *  - `project` (String): The project name.
  *
@@ -266,6 +266,7 @@ function openPath(p, i, $parent) {
     } else {
         setTimeout(function() {
 
+            // this a bit wrong
             self.on("nodeOpened", function () {
                 openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
             }, true);
@@ -285,8 +286,7 @@ function openPath(p, i, $parent) {
  *
  * @name openPath
  * @function
- * @param {Event} ev The event object.
- * @param {Object} data An object containing the following fields:
+ * @param {Stream} stream The stream object
  *
  *  - `path` (Strnig): The path to open.
  *  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
@@ -320,8 +320,7 @@ exports.openPath = function (stream) {
  *
  * @name open
  * @function
- * @param {Event} ev The event object.
- * @param {Object} data An object containing the following fields:
+ * @param {Stream} stream The stream object
  *
  *  - `path` (Strnig): The path to open.
  */
