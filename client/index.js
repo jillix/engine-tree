@@ -63,9 +63,7 @@ exports.init = function() {
             function req (data, act) {
                 act = act || action;
 
-                var str = self.flow({
-                    "call": self._name + "/" + act
-                });
+                var str = self.flow(act);
 
                 str.data(function (err, data) {
                     if (err) { alert(err); }
@@ -346,9 +344,7 @@ exports.open = function (stream) {
         }
 
         // create stream
-        var str = self.flow({
-            "call": self._name + "/readDir"
-        });
+        var str = self.flow("readDir");
 
         str.data(callback);
         str.write(null, {

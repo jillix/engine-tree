@@ -6,26 +6,26 @@
   "composition": {
     "public": "public",
     "flow": [
-      {
-        "on": "readDir",
-        "call": "readDir"
-      },
-      {
-        "on": "newFolder",
-        "call": "newFolder"
-      },
-      {
-        "on": "newFile",
-        "call": "newFile"
-      },
-      {
-        "on": "renamed",
-        "call": "renamed"
-      },
-      {
-        "on": "delete",
-        "call": "delete"
-      }
+      [
+        "readDir",
+        "readDir"
+      ],
+      [
+        "newFolder",
+        "newFolder"
+      ],
+      [
+        "newFile",
+        "newFile"
+      ],
+      [
+        "renamed",
+        "renamed"
+      ],
+      [
+        "delete",
+        "delete"
+      ]
     ],
     "client": {
       "module": [
@@ -34,18 +34,34 @@
         "/libs/jquery.js"
       ],
       "flow": [
-        {
-          "on": "_beforeSelectRes",
-          "call": "_beforeSelectRes"
-        },
-        {
-          "on": "nodeOpened",
-          "call": "nodeOpened"
-        },
-        {
-          "on": "open",
-          "call": "open"
-        }
+        [
+          "nodeOpened",
+          "nodeOpened"
+        ],
+        [
+          "open",
+          "open"
+        ],
+        [
+          "readDir",
+          ["link", "readDir"]
+        ],
+        [
+          "newFolder",
+          ["link", "newFolder"]
+        ],
+        [
+          "newFile",
+          ["link", "newFile"]
+        ],
+        [
+          "renamed",
+          ["link", "renamed"]
+        ],
+        [
+          "delete",
+          ["link", "delete"]
+        ]
       ],
       "styles": [
         "public/css/jstree.css"
