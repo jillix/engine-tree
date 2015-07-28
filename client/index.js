@@ -31,8 +31,12 @@ function on(eventName, callback) {
     var self = this;
 
     self[eventName] = function (stream) {
-        stream.data(function (err, data) {
-            callback.call(self, err, data);
+        stream.data(function (data) {
+            callback.call(self, null, data);
+        });
+
+        stream.error(function (err) {
+            return console.error(new Error(err));
         });
     }
 }
@@ -65,9 +69,14 @@ exports.init = function() {
 
                 var str = self.flow(act);
 
-                str.data(function (err, data) {
-                    if (err) { alert(err); }
+                // data handler
+                str.data(function (data) {
                     jsTreeInst.refresh();
+                });
+
+                // error handler
+                str.error(function (err) {
+                    alert(err);
                 });
 
                 self.write(null, {
@@ -223,13 +232,13 @@ exports.init = function() {
 exports.setProject = function (stream) {
     var self = this;
 
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
-
+    stream.data(function (data) {
         self.project = data.project;
+    });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
     });
 };
 
@@ -292,11 +301,7 @@ function openPath(p, i, $parent) {
 exports.openPath = function (stream) {
     var self = this;
 
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
+    stream.data(function (data) {
 
         if (!data.path) {
             return;
@@ -309,6 +314,11 @@ exports.openPath = function (stream) {
         }
 
         openPath.call(self, splits.slice(data.start || 3));
+    });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
     });
 };
 
@@ -324,11 +334,7 @@ exports.openPath = function (stream) {
  */
 exports.open = function (stream) {
     var self = this;
-    stream.data(function (err, data) {
-
-        if (err) {
-            return console.error(new Error(err));
-        }
+    stream.data(function (data) {
 
         var callback = data.callback || function (err) {
             if (err) { return alert(err); }
@@ -346,10 +352,20 @@ exports.open = function (stream) {
         // create stream
         var str = self.flow("readDir");
 
-        str.data(callback);
+        str.data(function (data) {
+            callback(null, data);
+        });
+        str.error(function (err) {
+            callback(err, null);
+        })
         str.write(null, {
             project: self.project,
             path: data.path
         });
+    });
+
+    // handle error
+    stream.error(function (err) {
+        return console.error(new Error(err));
     });
 };

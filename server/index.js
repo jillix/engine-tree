@@ -7,13 +7,7 @@ var Mkdirp = require("mkdirp");
 const SERVICE_PROJECTS = "/Users/danandrei/work/appsForEngine";
 
 exports.readDir = function (stream) {
-    stream.data(function (err, data) {
-
-        // handle stream error
-        if (err) {
-            stream.write(err);
-            return stream.end();
-        }
+    stream.data(function (data) {
 
         // validate data
         if (!data.path) { 
@@ -97,12 +91,7 @@ exports.readDir = function (stream) {
 };
 
 exports.delete = function (stream) {
-    stream.data(function (err, data) {
-
-        if (err) {
-            stream.write(err);
-            return stream.end();
-        }
+    stream.data(function (data) {
 
         // validate data
         if (!data.path) { 
@@ -123,13 +112,7 @@ exports.delete = function (stream) {
 };
 
 exports.newFolder = function (stream) {
-    stream.data(function (err, data) {
-
-        // handle stream error
-        if (err) {
-            stream.write(err);
-            return stream.end();
-        }
+    stream.data(function (data) {
 
         // validate data
         if (!data.path) { 
@@ -155,13 +138,7 @@ exports.newFolder = function (stream) {
 };
 
 exports.newFile = function (stream) {
-    stream.data(function (err, data) {
-
-        // handle stream error
-        if (err) {
-            stream.write(err);
-            return stream.end();
-        }
+    stream.data(function (data) {
 
         // validate data
         if (!data.path) { 
@@ -184,17 +161,11 @@ exports.newFile = function (stream) {
 
         stream.write(null);
         stream.end(null);
-    });  
+    });
 };
 
 exports.rename = function (stream) {
-    stream.data(function (err, data) {
-
-        // handle stream error
-        if (err) {
-            stream.write(err);
-            return stream.end();
-        }
+    stream.data(function (data) {
 
         // validate data
         if (!data.path) { 
