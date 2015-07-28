@@ -4,7 +4,7 @@ var RimRaf = require("rimraf");
 var Streamp = require("streamp");
 var Mkdirp = require("mkdirp");
 
-const SERVICE_PROJECTS = "/Users/danandrei/work/appsForEngine";
+const SERVICE_PROJECTS = process.env.ENGINE_APPS || Ul.home() + "/engine_repos";
 
 exports.readDir = function (stream) {
     stream.data(function (data) {
