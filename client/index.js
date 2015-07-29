@@ -52,6 +52,12 @@ exports.init = function() {
     self.emit = emit;
     self.on = on;
 
+    // init the streams object
+    self._streams = self._streams || {};
+
+    // create the streams
+    self._streams.readDir = self.flow("readDir");
+
     function actionGen(action) {
         return function (node, data) {
             var item = node;
@@ -349,16 +355,18 @@ exports.open = function (stream) {
             }]);
         }
 
-        // create stream
-        var str = self.flow("readDir");
-
-        str.data(function (data) {
+        // listen for data
+        self._streams.readDir.data(function (data) {
             callback(null, data);
         });
-        str.error(function (err) {
+
+        // handle error
+        self._streams.readDir.error(function (err) {
             callback(err, null);
         })
-        str.write(null, {
+
+        // send data
+        self._streams.readDir.write(null, {
             project: self.project,
             path: data.path
         });

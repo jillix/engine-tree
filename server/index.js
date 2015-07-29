@@ -12,11 +12,11 @@ exports.readDir = function (stream) {
         // validate data
         if (!data.path) { 
             stream.write(new Error("Missing the path.", [])); 
-            return stream.end();
+            return;
         }
         if (!data.project) {
             stream.write(new Error("Missing the project.", []));
-            return stream.end();
+            return;
         }
 
         var path = Path.join(SERVICE_PROJECTS, data.project, data.path);
@@ -24,7 +24,7 @@ exports.readDir = function (stream) {
 
             if (err) {
                 stream.write(err);
-                return stream.end();
+                return;
             }
 
             items = items.map(function (c) {
@@ -84,8 +84,7 @@ exports.readDir = function (stream) {
             var files = items.filter(function (c) { return c.type !== "folder"; }).sort(sort);
             var folders = items.filter(function (c) { return c.type === "folder"; }).sort(sort);
 
-            stream.write(null, folders.concat(files));
-            return stream.end()
+            return stream.write(null, folders.concat(files));
         });
     });
 };
