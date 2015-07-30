@@ -11,11 +11,11 @@ exports.readDir = function (stream) {
 
         // validate data
         if (!data.path) { 
-            stream.write(new Error("Missing the path.", [])); 
+            stream.write(new Error("Missing the path.")); 
             return;
         }
         if (!data.project) {
-            stream.write(new Error("Missing the project.", []));
+            stream.write("Missing the project");
             return;
         }
 

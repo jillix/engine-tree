@@ -14,9 +14,6 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
     };
 };
 
-// emit function
-// TODO test event in data
-// TODO add error
 function emit(eventName, data) {
     var self = this;
     self._streams = self._streams || {};
@@ -57,64 +54,74 @@ exports.init = function() {
 
     // create the streams
     self._streams.readDir = self.flow("readDir");
+};
 
-    function actionGen(action) {
-        return function (node, data) {
-            var item = node;
-            var jsTreeInst = null;
-            if (data && data.node) {
-                item = data.node;
-                jsTreeInst = $.jstree.reference(item);
-            } else {
-                jsTreeInst = $.jstree.reference(item.reference);
-                item = jsTreeInst.get_node(node.reference);
-            }
+function actionGen(action) {
+    return function (node, data) {
+        var item = node;
+        var jsTreeInst = null;
+        if (data && data.node) {
+            item = data.node;
+            jsTreeInst = $.jstree.reference(item);
+        } else {
+            jsTreeInst = $.jstree.reference(item.reference);
+            item = jsTreeInst.get_node(node.reference);
+        }
 
-            function req (data, act) {
-                act = act || action;
+        function req (data, act) {
+            act = act || action;
 
-                var str = self.flow(act);
+            var str = self.flow(act);
 
-                // data handler
-                str.data(function (data) {
-                    jsTreeInst.refresh();
-                });
+            // data handler
+            str.data(function (data) {
+                jsTreeInst.refresh();
+            });
 
-                // error handler
-                str.error(function (err) {
-                    alert(err);
-                });
+            // error handler
+            str.error(function (err) {
+                alert(err);
+            });
 
-                self.write(null, {
-                    project: self.project,
-                    path: item.original.path,
-                    data: data
-                });
-            }
+            self.write(null, {
+                project: self.project,
+                path: item.original.path,
+                data: data
+            });
+        }
 
-            switch (action) {
-                case "do_rename":
-                    return jsTreeInst.edit(item);
-                case "do_newFolder":
-                case "do_newFile":
-                    var newNode = jsTreeInst.create_node(item.parent);
-                    jsTreeInst.edit(newNode);
-                    self.tmp.creating = action.replace("do_", "");
-                    self.tmp.path = item.original.path
-                    return;
-                case "renamed":
-                    if (self.tmp.creating) {
-                        item.original.path = self.tmp.path;
-                    }
-                    req({ name: item.text }, self.tmp.creating);
-                    self.tmp.creating = null;
-                    self.tmp.path = null;
-                    return;
-            }
+        switch (action) {
+            case "do_rename":
+                return jsTreeInst.edit(item);
+            case "do_newFolder":
+            case "do_newFile":
+                var newNode = jsTreeInst.create_node(item.parent);
+                jsTreeInst.edit(newNode);
+                self.tmp.creating = action.replace("do_", "");
+                self.tmp.path = item.original.path
+                return;
+            case "renamed":
+                if (self.tmp.creating) {
+                    item.original.path = self.tmp.path;
+                }
+                req({ name: item.text }, self.tmp.creating);
+                self.tmp.creating = null;
+                self.tmp.path = null;
+                return;
+        }
 
-            req();
-        };
+        req();
+    };
+}
+
+exports.load = function (data) {
+    var self = this;
+
+    // set project
+    if (!data.project) {
+        return console.error(new Error("Project name not provided"));
     }
+    self.project = data.project;
 
     self.tmp = {};
     self.$jstree = $(self._config.container).jstree({
@@ -165,15 +172,15 @@ exports.init = function() {
         },
         core: {
             data: function (node, cb) {
-                // todo add err
                 // call open method
-                self.emit("open", {
+                self.open({
                     path: Object(node.original).path,
                     callback: function (err, data) {
-                        if (err) { alert(err); }
+                        if (err) { 
+                            console.error(new Error(err));
+                            return;
+                        }
                         cb(data);
-                        // TODO add err
-                        self.emit("pathOpened", data);
                     }
                 });
             },
@@ -219,33 +226,6 @@ exports.init = function() {
     }).on("open_node.jstree", function (e, data) {
         self.emit("nodeOpened", data);
     }).on("rename_node.jstree", actionGen("renamed"));
-
-    // module is ready
-    self.emit("ready");
-};
-
-/**
- * setProject
- * Sets the project name internally.
- *
- * @name setProject
- * @function
- * @param {Stream} stream The stream object
- *
- *  - `project` (String): The project name.
- *
- */
-exports.setProject = function (stream) {
-    var self = this;
-
-    stream.data(function (data) {
-        self.project = data.project;
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
-    });
 };
 
 function openPath(p, i, $parent) {
@@ -299,33 +279,25 @@ function openPath(p, i, $parent) {
  *
  * @name openPath
  * @function
- * @param {Stream} stream The stream object
+ * @param {Object} data The data object containing:
  *
  *  - `path` (Strnig): The path to open.
  *  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
  */
-exports.openPath = function (stream) {
+exports.openPath = function (data) {
     var self = this;
 
-    stream.data(function (data) {
+    if (!data.path) {
+        return;
+    }
 
-        if (!data.path) {
-            return;
-        }
+    var splits = data.path;
 
-        var splits = data.path;
+    if (typeof splits === "string") {
+        splits = split.split("/");
+    }
 
-        if (typeof splits === "string") {
-            splits = split.split("/");
-        }
-
-        openPath.call(self, splits.slice(data.start || 3));
-    });
-
-    // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
-    });
+    openPath.call(self, splits.slice(data.start || 3));
 };
 
 /**
@@ -334,46 +306,40 @@ exports.openPath = function (stream) {
  *
  * @name open
  * @function
- * @param {Stream} stream The stream object
+ * @param {Object} data The data object containing:
  *
  *  - `path` (Strnig): The path to open.
  */
-exports.open = function (stream) {
+exports.open = function (data) {
     var self = this;
-    stream.data(function (data) {
 
-        var callback = data.callback || function (err) {
-            if (err) { return alert(err); }
-        };
+    var callback = data.callback || function (err) {
+        if (err) { return alert(err); }
+    };
 
-        if (data.path === undefined) {
-            return callback(null, [{
-                path: "/",
-                type: "folder",
-                text: "/",
-                children: true
-            }]);
-        }
+    if (data.path === undefined) {
+        return callback(null, [{
+            path: "/",
+            type: "folder",
+            text: "/",
+            children: true
+        }]);
+    }
 
-        // listen for data
-        self._streams.readDir.data(function (data) {
-            callback(null, data);
-        });
-
-        // handle error
-        self._streams.readDir.error(function (err) {
-            callback(err, null);
-        })
-
-        // send data
-        self._streams.readDir.write(null, {
-            project: self.project,
-            path: data.path
-        });
+    // listen for data
+    self._streams.readDir.data(function (data) {
+        callback(null, data);
     });
 
     // handle error
-    stream.error(function (err) {
-        return console.error(new Error(err));
+    self._streams.readDir.error(function (err) {
+        console.log(err);
+        callback(err, null);
+    });
+
+    // send data
+    self._streams.readDir.write(null, {
+        project: self.project,
+        path: data.path
     });
 };

@@ -43,6 +43,19 @@
           "open"
         ],
         [
+          "loaded",
+          [
+            ":transform",
+            {
+              "set": 
+              {
+                "path": "_path"
+              }
+            }
+          ],
+          ":openPath"
+        ],
+        [
           "readDir",
           ["link", "readDir"]
         ],
