@@ -14,30 +14,6 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
     };
 };
 
-function emit(eventName, data) {
-    var self = this;
-    self._streams = self._streams || {};
-
-    // create stream
-    var str = self._streams[eventName] || (self._streams[eventName] = self.flow(eventName));
-    str.write(null, data);
-}
-
-// this is not exactly correct
-function on(eventName, callback) {
-    var self = this;
-
-    self[eventName] = function (stream) {
-        stream.data(function (data) {
-            callback.call(self, null, data);
-        });
-
-        stream.error(function (err) {
-            return console.error(new Error(err));
-        });
-    }
-}
-
 /*!
  * init
  *
@@ -46,14 +22,19 @@ function on(eventName, callback) {
  */
 exports.init = function() {
     var self = this;
-    self.emit = emit;
-    self.on = on;
 
     // init the streams object
     self._streams = self._streams || {};
 
     // create the streams
     self._streams.readDir = self.flow("readDir");
+
+    // init streams
+    self._loadedStream = self.flow("loaded");
+    self._openPathFinishedStream = self.flow("openPathFinished");
+    self._selectedFileStream = self.flow("selected.file");
+    self._beforeSelectStream = self.flow("beforeSelect");
+    self._nodeOpenedStream = self.flow("nodeOpened");
 };
 
 function actionGen(action) {
@@ -164,7 +145,7 @@ exports.load = function (data) {
                 return cb(true);
             }
 
-            self.emit("beforeSelect", {
+            self._beforeSelectStream.write(null, {
                 callback: function (err, data) {
                     cb(data.select);
                 }
@@ -215,16 +196,16 @@ exports.load = function (data) {
         if (!data.node) { return; }
 
         var isFolder = data.node.type === "folder";
-        self[isFolder ? "selectedDir" : "selectedFile"] = data.node.original.path;
-        var emitData = {};
-        emitData[isFolder ? "selectedDir" : "selectedFile"] = data.node.original.path;
-        self.emit("selected." + (isFolder ? "folder" : "file"), emitData);
+        if (!isFolder) {
+            self._selectedFileStream.write(null, {
+                selectedFile: data.node.original.path
+            });
+        }
         self.selected = data.node.original.path;
-        self.emit("changed", data);
     }).on("loaded.jstree", function (e, data) {
-        self.emit("loaded", data);
+        self._loadedStream.write(null, data);
     }).on("open_node.jstree", function (e, data) {
-        self.emit("nodeOpened", data);
+        self._nodeOpenedStream.write(null, data);
     }).on("rename_node.jstree", actionGen("renamed"));
 };
 
@@ -242,14 +223,13 @@ function openPath(p, i, $parent) {
 
     var c = p[i];
     if (!c) {
-        return self.emit("openPathFinished");
+        return self._openPathFinishedStream.write(null);
     }
 
     if (!$parent) {
         $parent = self.$jstree;
     }
     $parent = $($parent);
-
     var $cListItem = $parent.find(">ul>li").find(">a").filter(function () {
         return $(this).text().trim() === c;
     });
@@ -260,18 +240,28 @@ function openPath(p, i, $parent) {
         setTimeout(function() {
 
             // this a bit wrong
-            self.on("nodeOpened", function () {
+            self.nodeOpenedListener = function () {
                 openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
-            }, true);
+            };
             if ($cListItem.find("i").hasClass("octicon-file-directory")) {
                 $cListItem.dblclick();
             } else {
                 $cListItem.click();
-                self.emit("openPathFinished");
+                console.log($cListItem);
+                self._openPathFinishedStream.write(null);
             }
         }, 0);
     }
 }
+
+// listen for nodeOpened event
+exports.nodeOpened = function (data) {
+    var self = this;
+
+    if (self.nodeOpenedListener && typeof self.nodeOpenedListener === "function") {
+        self.nodeOpenedListener();
+    }
+};
 
 /**
  * openPath
@@ -333,7 +323,6 @@ exports.open = function (data) {
 
     // handle error
     self._streams.readDir.error(function (err) {
-        console.log(err);
         callback(err, null);
     });
 

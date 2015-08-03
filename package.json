@@ -36,11 +36,7 @@
       "flow": [
         [
           "nodeOpened",
-          "nodeOpened"
-        ],
-        [
-          "open",
-          "open"
+          ":nodeOpened"
         ],
         [
           "loaded",
