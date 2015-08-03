@@ -247,7 +247,6 @@ function openPath(p, i, $parent) {
                 $cListItem.dblclick();
             } else {
                 $cListItem.click();
-                console.log($cListItem);
                 self._openPathFinishedStream.write(null);
             }
         }, 0);
