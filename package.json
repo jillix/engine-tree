@@ -3,59 +3,80 @@
   "version": "1.0.0",
   "description": "Tree module for Engine.",
   "main": "server/index.js",
-  "public": "public",
-  "components": {
-    "scripts": [
-      "client/index.js",
-      "client/libs/jstree.js",
-      "/libs/jquery.js"
+  "composition": {
+    "public": "public",
+    "flow": [
+      [
+        "readDir",
+        "readDir"
+      ],
+      [
+        "newFolder",
+        "newFolder"
+      ],
+      [
+        "newFile",
+        "newFile"
+      ],
+      [
+        "renamed",
+        "renamed"
+      ],
+      [
+        "delete",
+        "delete"
+      ]
     ],
-    "styles": [
-      "public/css/jstree.css"
-    ]
-  },
-  "flow": [
-    {
-      "in": "readDir",
-      "out": [
-        {
-          "call": "readDir"
-        }
-      ]
-    },
-    {
-      "in": "newFolder",
-      "out": [
-        {
-          "call": "newFolder"
-        }
-      ]
-    },
-    {
-      "in": "newFile",
-      "out": [
-        {
-          "call": "newFile"
-        }
-      ]
-    },
-    {
-      "in": "renamed",
-      "out": [
-        {
-          "call": "rename"
-        }
-      ]
-    },
-    {
-      "in": "delete",
-      "out": [
-        {
-          "call": "delete"
-        }
+    "client": {
+      "module": [
+        "client/index.js",
+        "client/libs/jstree.js",
+        "/libs/jquery.js"
+      ],
+      "flow": [
+        [
+          "nodeOpened",
+          ":nodeOpened"
+        ],
+        [
+          "loaded",
+          [
+            ":transform",
+            {
+              "set": 
+              {
+                "path": "_path"
+              }
+            }
+          ],
+          ":openPath"
+        ],
+        [
+          "readDir",
+          ["link", "readDir"]
+        ],
+        [
+          "newFolder",
+          ["link", "newFolder"]
+        ],
+        [
+          "newFile",
+          ["link", "newFile"]
+        ],
+        [
+          "renamed",
+          ["link", "renamed"]
+        ],
+        [
+          "delete",
+          ["link", "delete"]
+        ]
+      ],
+      "styles": [
+        "public/css/jstree.css"
       ]
     }
-  ],
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

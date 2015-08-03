@@ -23,53 +23,86 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
 exports.init = function() {
     var self = this;
 
-    function actionGen(action) {
-        return function (node, data) {
-            var item = node;
-            var jsTreeInst = null;
-            if (data && data.node) {
-                item = data.node;
-                jsTreeInst = $.jstree.reference(item);
-            } else {
-                jsTreeInst = $.jstree.reference(item.reference);
-                item = jsTreeInst.get_node(node.reference);
-            }
+    // init the streams object
+    self._streams = self._streams || {};
 
-            function req (data, act) {
-                act = act || action;
-                self.link(act, function (err) {
-                    if (err) { alert(err); }
-                    jsTreeInst.refresh();
-                }).send(null, {
-                    project: self.project,
-                    path: item.original.path,
-                    data: data
-                });
-            }
+    // create the streams
+    self._streams.readDir = self.flow("readDir");
 
-            switch (action) {
-                case "do_rename":
-                    return jsTreeInst.edit(item);
-                case "do_newFolder":
-                case "do_newFile":
-                    var newNode = jsTreeInst.create_node(item.parent);
-                    jsTreeInst.edit(newNode);
-                    self.tmp.creating = action.replace("do_", "");
-                    self.tmp.path = item.original.path
-                    return;
-                case "renamed":
-                    if (self.tmp.creating) {
-                        item.original.path = self.tmp.path;
-                    }
-                    req({ name: item.text }, self.tmp.creating);
-                    self.tmp.creating = null;
-                    self.tmp.path = null;
-                    return;
-            }
+    // init streams
+    self._loadedStream = self.flow("loaded");
+    self._openPathFinishedStream = self.flow("openPathFinished");
+    self._selectedFileStream = self.flow("selected.file");
+    self._beforeSelectStream = self.flow("beforeSelect");
+    self._nodeOpenedStream = self.flow("nodeOpened");
+};
 
-            req();
-        };
+function actionGen(action) {
+    return function (node, data) {
+        var item = node;
+        var jsTreeInst = null;
+        if (data && data.node) {
+            item = data.node;
+            jsTreeInst = $.jstree.reference(item);
+        } else {
+            jsTreeInst = $.jstree.reference(item.reference);
+            item = jsTreeInst.get_node(node.reference);
+        }
+
+        function req (data, act) {
+            act = act || action;
+
+            var str = self.flow(act);
+
+            // data handler
+            str.data(function (data) {
+                jsTreeInst.refresh();
+            });
+
+            // error handler
+            str.error(function (err) {
+                alert(err);
+            });
+
+            self.write(null, {
+                project: self.project,
+                path: item.original.path,
+                data: data
+            });
+        }
+
+        switch (action) {
+            case "do_rename":
+                return jsTreeInst.edit(item);
+            case "do_newFolder":
+            case "do_newFile":
+                var newNode = jsTreeInst.create_node(item.parent);
+                jsTreeInst.edit(newNode);
+                self.tmp.creating = action.replace("do_", "");
+                self.tmp.path = item.original.path
+                return;
+            case "renamed":
+                if (self.tmp.creating) {
+                    item.original.path = self.tmp.path;
+                }
+                req({ name: item.text }, self.tmp.creating);
+                self.tmp.creating = null;
+                self.tmp.path = null;
+                return;
+        }
+
+        req();
+    };
+}
+
+exports.load = function (data) {
+    var self = this;
+
+    // set project
+    if (!data.project) {
+        return console.error(new Error("Project name not provided"));
     }
+    self.project = data.project;
 
     self.tmp = {};
     self.$jstree = $(self._config.container).jstree({
@@ -101,6 +134,7 @@ exports.init = function() {
             }
         },
         conditionalselect: function (node, cb) {
+
             if (self._config.alwaysSelect) {
                 return cb(true);
             }
@@ -111,19 +145,23 @@ exports.init = function() {
                 return cb(true);
             }
 
-            self.on("_beforeSelectRes", function (ev, data) {
-                cb(data.select);
-            }, true);
-            self.emit("beforeSelect");
+            self._beforeSelectStream.write(null, {
+                callback: function (err, data) {
+                    cb(data.select);
+                }
+            });
         },
         core: {
             data: function (node, cb) {
-                self.open(null, {
+                // call open method
+                self.open({
                     path: Object(node.original).path,
                     callback: function (err, data) {
-                        if (err) { alert(err); }
+                        if (err) { 
+                            console.error(new Error(err));
+                            return;
+                        }
                         cb(data);
-                        self.emit("pathOpened", null, err, data);
                     }
                 });
             },
@@ -156,37 +194,25 @@ exports.init = function() {
         }
     }).on("changed.jstree", function (e, data) {
         if (!data.node) { return; }
-        var isFolder = data.node.type === "folder";
-        self[isFolder ? "selectedDir" : "selectedFile"] = data.node.original.path;
-        self.emit("selected." + (isFolder ? "folder" : "file"));
-        self.selected = data.node.original.path;
-        self.emit("changed", e, data);
-    }).on("loaded.jstree", function (e, data) {
-        self.emit("loaded", e, data);
-    }).on("open_node.jstree", function (e, data) {
-        self.emit("nodeOpened", e, data);
-    }).on("rename_node.jstree", actionGen("renamed"));
-};
 
-/**
- * setProject
- * Sets the project name internally.
- *
- * @name setProject
- * @function
- * @param {Event} ev The event object.
- * @param {Object} data An object containing the following fields:
- *
- *  - `project` (String): The project name.
- *
- */
-exports.setProject = function (ev, data) {
-    this.project = data.project;
+        var isFolder = data.node.type === "folder";
+        if (!isFolder) {
+            self._selectedFileStream.write(null, {
+                selectedFile: data.node.original.path
+            });
+        }
+        self.selected = data.node.original.path;
+    }).on("loaded.jstree", function (e, data) {
+        self._loadedStream.write(null, data);
+    }).on("open_node.jstree", function (e, data) {
+        self._nodeOpenedStream.write(null, data);
+    }).on("rename_node.jstree", actionGen("renamed"));
 };
 
 function openPath(p, i, $parent) {
     var self = this;
     i = i || 0;
+
     if (typeof p === "string") {
         p = ["/"].concat(p.split("/"));
     }
@@ -197,14 +223,13 @@ function openPath(p, i, $parent) {
 
     var c = p[i];
     if (!c) {
-        return self.emit("openPathFinished");
+        return self._openPathFinishedStream.write(null);
     }
 
     if (!$parent) {
         $parent = self.$jstree;
     }
     $parent = $($parent);
-
     var $cListItem = $parent.find(">ul>li").find(">a").filter(function () {
         return $(this).text().trim() === c;
     });
@@ -213,18 +238,29 @@ function openPath(p, i, $parent) {
         return openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
     } else {
         setTimeout(function() {
-            self.on("nodeOpened", function () {
+
+            // this a bit wrong
+            self.nodeOpenedListener = function () {
                 openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
-            }, true);
+            };
             if ($cListItem.find("i").hasClass("octicon-file-directory")) {
                 $cListItem.dblclick();
             } else {
                 $cListItem.click();
-                self.emit("openPathFinished");
+                self._openPathFinishedStream.write(null);
             }
         }, 0);
     }
 }
+
+// listen for nodeOpened event
+exports.nodeOpened = function (data) {
+    var self = this;
+
+    if (self.nodeOpenedListener && typeof self.nodeOpenedListener === "function") {
+        self.nodeOpenedListener();
+    }
+};
 
 /**
  * openPath
@@ -232,19 +268,19 @@ function openPath(p, i, $parent) {
  *
  * @name openPath
  * @function
- * @param {Event} ev The event object.
- * @param {Object} data An object containing the following fields:
+ * @param {Object} data The data object containing:
  *
  *  - `path` (Strnig): The path to open.
  *  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
  */
-exports.openPath = function (ev, data) {
+exports.openPath = function (data) {
+    var self = this;
+
     if (!data.path) {
         return;
     }
 
     var splits = data.path;
-    var self = this;
 
     if (typeof splits === "string") {
         splits = split.split("/");
@@ -259,16 +295,17 @@ exports.openPath = function (ev, data) {
  *
  * @name open
  * @function
- * @param {Event} ev The event object.
- * @param {Object} data An object containing the following fields:
+ * @param {Object} data The data object containing:
  *
  *  - `path` (Strnig): The path to open.
  */
-exports.open = function (ev, data) {
+exports.open = function (data) {
     var self = this;
+
     var callback = data.callback || function (err) {
         if (err) { return alert(err); }
     };
+
     if (data.path === undefined) {
         return callback(null, [{
             path: "/",
@@ -277,7 +314,19 @@ exports.open = function (ev, data) {
             children: true
         }]);
     }
-    self.link("readDir", callback).send(null, {
+
+    // listen for data
+    self._streams.readDir.data(function (data) {
+        callback(null, data);
+    });
+
+    // handle error
+    self._streams.readDir.error(function (err) {
+        callback(err, null);
+    });
+
+    // send data
+    self._streams.readDir.write(null, {
         project: self.project,
         path: data.path
     });
