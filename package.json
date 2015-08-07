@@ -41,7 +41,7 @@
         [
           "loaded",
           [
-            ":transform",
+            ":ALTR",
             {
               "set": 
               {
@@ -53,23 +53,23 @@
         ],
         [
           "readDir",
-          ["link", "readDir"]
+          ["flow", "@readDir"]
         ],
         [
           "newFolder",
-          ["link", "newFolder"]
+          ["flow", "@newFolder"]
         ],
         [
           "newFile",
-          ["link", "newFile"]
+          ["flow", "@newFile"]
         ],
         [
           "renamed",
-          ["link", "renamed"]
+          ["flow", "@renamed"]
         ],
         [
           "delete",
-          ["link", "delete"]
+          ["flow", "@delete"]
         ]
       ],
       "styles": [
