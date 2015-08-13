@@ -35,6 +35,7 @@ exports.init = function() {
     self._selectedFileStream = self.flow("selected.file");
     self._beforeSelectStream = self.flow("beforeSelect");
     self._nodeOpenedStream = self.flow("nodeOpened");
+    self._changeUrlStream = self.flow("changeUrl");
 };
 
 function actionGen(action) {
@@ -97,6 +98,12 @@ function actionGen(action) {
 
 exports.load = function (data) {
     var self = this;
+
+    self.noPush = data.noPush || false;
+
+    if (!data._path[3]) {
+        self.noPush = false;
+    }
 
     // set project
     if (!data.project) {
@@ -200,7 +207,16 @@ exports.load = function (data) {
             self._selectedFileStream.write(null, {
                 selectedFile: data.node.original.path
             });
+
+            // change url on user input
+            if (!self.noPush) {
+                self._changeUrlStream.write(null, {
+                    selectedFile: data.node.original.path
+                });
+            }
         }
+
+        self.noPush = false;
         self.selected = data.node.original.path;
     }).on("loaded.jstree", function (e, data) {
         self._loadedStream.write(null, data);
