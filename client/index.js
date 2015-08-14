@@ -166,7 +166,6 @@ exports.load = function (data) {
                         return console.error(new Error(err));
                     }
 
-                    console.log(data);
                     cb(data);
                 });
             },
