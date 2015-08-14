@@ -23,12 +23,6 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
 exports.init = function() {
     var self = this;
 
-    // init the streams object
-    self._streams = self._streams || {};
-
-    // create the streams
-    self._streams.readDir = self.flow("readDir");
-
     // init streams
     self._loadedStream = self.flow("loaded");
     self._openPathFinishedStream = self.flow("openPathFinished");
@@ -53,16 +47,18 @@ function actionGen(action) {
         function req (data, act) {
             act = act || action;
 
-            var str = self.flow(act);
+            var str = self.flow(act, true);
 
             // data handler
             str.data(function (data) {
                 jsTreeInst.refresh();
+                str.end();
             });
 
             // error handler
             str.error(function (err) {
                 alert(err);
+                str.end();
             });
 
             self.write(null, {
@@ -160,16 +156,18 @@ exports.load = function (data) {
         },
         core: {
             data: function (node, cb) {
-                // call open method
-                self.open({
-                    path: Object(node.original).path,
-                    callback: function (err, data) {
-                        if (err) { 
-                            console.error(new Error(err));
-                            return;
-                        }
-                        cb(data);
+
+                // get the current directory
+                open.call(self, {
+                    path: Object(node.original).path
+                }, function (err, data) {
+
+                    if (err) {
+                        return console.error(new Error(err));
                     }
+
+                    console.log(data);
+                    cb(data);
                 });
             },
             check_callback: true
@@ -315,12 +313,8 @@ exports.openPath = function (data) {
  *
  *  - `path` (Strnig): The path to open.
  */
-exports.open = function (data) {
+function open (data, callback) {
     var self = this;
-
-    var callback = data.callback || function (err) {
-        if (err) { return alert(err); }
-    };
 
     if (data.path === undefined) {
         return callback(null, [{
@@ -331,19 +325,24 @@ exports.open = function (data) {
         }]);
     }
 
+    // create a non cached stream
+    var readDirStream = self.flow("readDir", true);
+
     // listen for data
-    self._streams.readDir.data(function (data) {
+    readDirStream.data(function (data) {
         callback(null, data);
+        return readDirStream.end();
     });
 
-    // handle error
-    self._streams.readDir.error(function (err) {
-        callback(err, null);
+    // listen for error
+    readDirStream.error(function (error) {
+        callback(error);
+        return readDirStream.end();
     });
 
-    // send data
-    self._streams.readDir.write(null, {
-        project: self.project,
-        path: data.path
+    // write data to stream
+    readDirStream.write(null, {
+        path: data.path,
+        project: self.project
     });
 };
