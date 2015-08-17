@@ -35,23 +35,6 @@
       ],
       "flow": [
         [
-          "nodeOpened",
-          ":nodeOpened"
-        ],
-        [
-          "loaded",
-          [
-            ":ALTR",
-            {
-              "set": 
-              {
-                "path": "_path"
-              }
-            }
-          ],
-          ":openPath"
-        ],
-        [
           "readDir",
           ["flow", "@readDir"]
         ],

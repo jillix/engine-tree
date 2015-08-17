@@ -22,84 +22,11 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
  */
 exports.init = function() {
     var self = this;
-
-    // init streams
-    self._loadedStream = self.flow("loaded");
-    self._openPathFinishedStream = self.flow("openPathFinished");
-    self._selectedFileStream = self.flow("selected.file");
-    self._beforeSelectStream = self.flow("beforeSelect");
-    self._nodeOpenedStream = self.flow("nodeOpened");
-    self._changeUrlStream = self.flow("changeUrl");
 };
-
-function actionGen(action) {
-    return function (node, data) {
-        var item = node;
-        var jsTreeInst = null;
-        if (data && data.node) {
-            item = data.node;
-            jsTreeInst = $.jstree.reference(item);
-        } else {
-            jsTreeInst = $.jstree.reference(item.reference);
-            item = jsTreeInst.get_node(node.reference);
-        }
-
-        function req (data, act) {
-            act = act || action;
-
-            var str = self.flow(act, true);
-
-            // data handler
-            str.data(function (data) {
-                jsTreeInst.refresh();
-                str.end();
-            });
-
-            // error handler
-            str.error(function (err) {
-                alert(err);
-                str.end();
-            });
-
-            self.write(null, {
-                project: self.project,
-                path: item.original.path,
-                data: data
-            });
-        }
-
-        switch (action) {
-            case "do_rename":
-                return jsTreeInst.edit(item);
-            case "do_newFolder":
-            case "do_newFile":
-                var newNode = jsTreeInst.create_node(item.parent);
-                jsTreeInst.edit(newNode);
-                self.tmp.creating = action.replace("do_", "");
-                self.tmp.path = item.original.path
-                return;
-            case "renamed":
-                if (self.tmp.creating) {
-                    item.original.path = self.tmp.path;
-                }
-                req({ name: item.text }, self.tmp.creating);
-                self.tmp.creating = null;
-                self.tmp.path = null;
-                return;
-        }
-
-        req();
-    };
-}
 
 exports.load = function (data) {
     var self = this;
-
-    self.noPush = data.noPush || false;
-
-    if (!data._path[3]) {
-        self.noPush = false;
-    }
+    self._isLoaded = false;
 
     // set project
     if (!data.project) {
@@ -148,7 +75,8 @@ exports.load = function (data) {
                 return cb(true);
             }
 
-            self._beforeSelectStream.write(null, {
+            // emit to a before select handler
+            self.flow("beforeSelect").write(null, {
                 callback: function (err, data) {
                     cb(data.select);
                 }
@@ -170,60 +98,59 @@ exports.load = function (data) {
                 });
             },
             check_callback: true
-        },
-        contextmenu: {
-            items: {
-                createFolder: {
-                    label: "New folder",
-                    icon : "octicon octicon-file-directory",
-                    action: actionGen("do_newFolder")
-                },
-                createFile: {
-                    label: "New file",
-                    icon: "octicon octicon-file-text",
-                    action: actionGen("do_newFile")
-                },
-                rename: {
-                    label: "Rename",
-                    icon: "octicon octicon-pencil",
-                    action: actionGen("do_rename")
-                },
-                deleteItem: {
-                    label: "Delete",
-                    icon: "octicon octicon-x",
-                    action: actionGen("delete")
-                }
-            },
-            select_node: false
         }
+    }).on("loaded.jstree", function (e, data) {
+        self._isLoaded = true;
+        self.flow("loaded").write(null, data);
     }).on("changed.jstree", function (e, data) {
-        if (!data.node) { return; }
+        if (!data || !data.event || !data.node) {
+            return;
+        }
+
+        // check if event was forced
+        if (!data.event.forcedSelect) {
+            self.flow("pathChanged").write(null, {
+                selectedFile: data.node.original.path
+            });
+        }
 
         var isFolder = data.node.type === "folder";
         if (!isFolder) {
-            self._selectedFileStream.write(null, {
+            self.flow("fileSelected").write(null, {
                 selectedFile: data.node.original.path
             });
-
-            // change url on user input
-            if (!self.noPush) {
-                self._changeUrlStream.write(null, {
-                    selectedFile: data.node.original.path
-                });
-            }
         }
-
-        self.noPush = false;
-        self.selected = data.node.original.path;
-    }).on("loaded.jstree", function (e, data) {
-        self._loadedStream.write(null, data);
-    }).on("open_node.jstree", function (e, data) {
-        self._nodeOpenedStream.write(null, data);
-    }).on("rename_node.jstree", actionGen("renamed"));
+    });
 };
 
-function openPath(p, i, $parent) {
+exports.openPath = function (data) {
     var self = this;
+
+    // do not open a path if the tree is not loaded
+    if (!self._isLoaded || self._openPathInProgress || !data._path) {
+        return;
+    }
+
+    // prevent multiple open path calls
+    self._openPathInProgress = true;
+
+    var splits = data._path;
+    if (typeof splits === String) {
+        splits = splits.split("/");
+    }
+
+    // tree is about to change
+    self.flow("treeRefreshed").write(null);
+
+    // refresh tree
+    $(self._config.container).jstree("deselect_all").jstree("close_all");
+
+    openPath.call(self, splits.slice(data.start || 3));
+};
+
+function openPath (p, i, $parent) {
+    var self = this;
+
     i = i || 0;
 
     if (typeof p === "string") {
@@ -236,15 +163,16 @@ function openPath(p, i, $parent) {
 
     var c = p[i];
     if (!c) {
-        return self._openPathFinishedStream.write(null);
+        self._openPathInProgress = false;
+        return;
     }
 
     if (!$parent) {
         $parent = self.$jstree;
     }
     $parent = $($parent);
-    var $cListItem = $parent.find(">ul>li").find(">a").filter(function () {
-        return $(this).text().trim() === c;
+    var $cListItem = $parent.find(">ul>li").filter(function () {
+        return $(this).find("a").text().trim() === c;
     });
 
     if ($cListItem.find(">ul").length) {
@@ -252,55 +180,23 @@ function openPath(p, i, $parent) {
     } else {
         setTimeout(function() {
 
-            // this a bit wrong
-            self.nodeOpenedListener = function () {
-                openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
-            };
-            if ($cListItem.find("i").hasClass("octicon-file-directory")) {
-                $cListItem.dblclick();
+            var listItemId = $cListItem.attr("id");
+
+            // if file, select it
+            if ($cListItem.hasClass("jstree-leaf")) {
+               $(self._config.container).jstree('select_node', listItemId, false, false, {
+                    forcedSelect: true
+               });
+               self._openPathInProgress = false;
             } else {
-                $cListItem.click();
-                self._openPathFinishedStream.write(null);
+                // if directory, open it
+                $(self._config.container).jstree('open_node', listItemId, function(e, data) {
+                    openPath.call(self, p, i + 1, "#" + listItemId);
+                }, true);
             }
         }, 0);
     }
 }
-
-// listen for nodeOpened event
-exports.nodeOpened = function (data) {
-    var self = this;
-
-    if (self.nodeOpenedListener && typeof self.nodeOpenedListener === "function") {
-        self.nodeOpenedListener();
-    }
-};
-
-/**
- * openPath
- * Opens a path to a file or directory.
- *
- * @name openPath
- * @function
- * @param {Object} data The data object containing:
- *
- *  - `path` (Strnig): The path to open.
- *  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
- */
-exports.openPath = function (data) {
-    var self = this;
-
-    if (!data.path) {
-        return;
-    }
-
-    var splits = data.path;
-
-    if (typeof splits === "string") {
-        splits = split.split("/");
-    }
-
-    openPath.call(self, splits.slice(data.start || 3));
-};
 
 /**
  * open
