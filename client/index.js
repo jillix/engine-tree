@@ -120,6 +120,8 @@ exports.load = function (data) {
                 selectedFile: data.node.original.path
             });
         }
+    }).on("open_node.jstree", function (e, data) {
+        self.flow("nodeOpened").write(null, data.node);
     });
 };
 
