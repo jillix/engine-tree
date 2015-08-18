@@ -156,6 +156,9 @@ exports.load = function (data) {
                 }, function (err, data) {
 
                     if (err) {
+                        self.flow("error").write(null, {
+                            text: "Directory could not be opened"
+                        });
                         return console.error(new Error(err));
                     }
 
@@ -268,6 +271,16 @@ function openPath (p, i, $parent) {
     var $cListItem = $parent.find(">ul>li").filter(function () {
         return $(this).find("a").text().trim() === c;
     });
+
+
+    // check if node was found
+    if (!$cListItem.length) {
+        self.flow("error").write(null, {
+            text: "Path could not be opened or file does not exist"
+        });
+        self._openPathInProgress = false;
+        return;
+    }
 
     if ($cListItem.find(">ul").length) {
         return openPath.call(self, p, i + 1, "#" + $cListItem.parent().attr("id"));
