@@ -19,8 +19,8 @@
         "newFile"
       ],
       [
-        "renamed",
-        "renamed"
+        "rename",
+        "rename"
       ],
       [
         "delete",
@@ -48,7 +48,7 @@
         ],
         [
           "renamed",
-          ["flow", "@renamed"]
+          ["flow", "@rename"]
         ],
         [
           "delete",

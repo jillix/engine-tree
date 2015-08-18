@@ -14,15 +14,73 @@ $.jstree.plugins.conditionalselect = function (options, parent) {
     };
 };
 
-/*!
- * init
- *
- * @name init
- * @function
- */
-exports.init = function() {
+function handleTreeAction (action) {
     var self = this;
-};
+    return function (node, data) {
+        var item = node;
+        var jsTreeInst = null;
+        if (data && data.node) {
+            item = data.node;
+            jsTreeInst = $.jstree.reference(item);
+        } else {
+            jsTreeInst = $.jstree.reference(item.reference);
+            item = jsTreeInst.get_node(node.reference);
+        }
+
+        function req (data, act) {
+            act = act || action;
+            var str = self.flow(act, true);
+
+            // data handler
+            str.data(function () {
+
+                // emit an url change if changed file is selected
+                if (data.path === self.selected) {
+                    var newPath = data.path.slice(0, data.path.lastIndexOf("/")) + "/" + data.name;
+                    if (newPath) {
+                        self.flow("pathChanged").write(null, {
+                            selectedFile: newPath
+                        });
+                        self.selected = newPath;
+                    }
+                }
+
+                jsTreeInst.refresh();
+            });
+
+            // error handler
+            str.error(function (err) {
+                alert(err);
+            });
+
+            str.write(null, {
+                project: self.project,
+                path: data.path,
+                data: data
+            });
+        }
+
+        switch (action) {
+            case "rename":
+                return jsTreeInst.edit(item);
+            case "newFolder":
+            case "newFile":
+                var newNode = jsTreeInst.create_node(item.parent);
+                jsTreeInst.edit(newNode);
+                self.tmp.creating = action;
+                self.tmp.path = item.original.path
+                return;
+            case "renamed":
+                if (self.tmp.creating) {
+                    item.original.path = self.tmp.path;
+                }
+                req({ name: item.text, path: item.original.path }, self.tmp.creating);
+                self.tmp.creating = null;
+                self.tmp.path = null;
+                return;
+        }
+    };
+}
 
 exports.load = function (data) {
     var self = this;
@@ -98,6 +156,31 @@ exports.load = function (data) {
                 });
             },
             check_callback: true
+        },
+        contextmenu: {
+            items: {
+                createFolder: {
+                    label: "New folder",
+                    icon : "octicon octicon-file-directory",
+                    action: handleTreeAction.call(self, "newFolder")
+                },
+                createFile: {
+                    label: "New file",
+                    icon: "octicon octicon-file-text",
+                    action: handleTreeAction.call(self, "newFile")
+                },
+                rename: {
+                    label: "Rename",
+                    icon: "octicon octicon-pencil",
+                    action: handleTreeAction.call(self, "rename")
+                },
+                deleteItem: {
+                    label: "Delete",
+                    icon: "octicon octicon-x",
+                    action: handleTreeAction.call(self, "delete")
+                }
+            },
+            select_node: false
         }
     }).on("loaded.jstree", function (e, data) {
         self._isLoaded = true;
@@ -120,9 +203,11 @@ exports.load = function (data) {
                 selectedFile: data.node.original.path
             });
         }
+
+        self.selected = data.node.original.path;
     }).on("open_node.jstree", function (e, data) {
         self.flow("nodeOpened").write(null, data.node);
-    });
+    }).on("rename_node.jstree", handleTreeAction.call(self, "renamed"));
 };
 
 exports.openPath = function (data) {
