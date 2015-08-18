@@ -37,11 +37,18 @@ function handleTreeAction (action) {
                 // emit an url change if changed file is selected
                 if (data.path === self.selected) {
                     var newPath = data.path.slice(0, data.path.lastIndexOf("/")) + "/" + data.name;
-                    if (newPath) {
-                        self.flow("pathChanged").write(null, {
+
+                    // emit the new path
+                    self.flow("pathChanged").write(null, {
+                        selectedFile: newPath
+                    });
+                    self.selected = newPath;
+
+                    // reemit select event to prevent multiple files
+                    if (item.type !== "folder") {
+                        self.flow("fileSelected").write(null, {
                             selectedFile: newPath
                         });
-                        self.selected = newPath;
                     }
                 }
 
