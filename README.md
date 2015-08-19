@@ -26,16 +26,12 @@ Tree module for Engine.
 ## Events
 
  - :arrow_up: `pathOpened` - After a path was opened.
- - :arrow_up: `selected.folder` - After a folder was selected.
- - :arrow_up: `selected.file` - After a file was selected.
- - :arrow_up: `changed" - Selection changed.
+ - :arrow_up: `fileSelected` - After a file was selected.
  - :arrow_up: `loaded` - The tree was loaded.
  - :arrow_up: `nodeOpened` - A node was opened.
  - :arrow_up: `beforeSelect` - Emitted before selecting a node.
- - :arrow_up: `openPathFinished` - The full path was loaded.
-
- - :arrow_down: `_beforeSelectRes` - An instance should emit this event and
-   data should contain the `select` boolean field.
+ - :arrow_up: `pathChanged` - The path has changed.
+ - :arrow_up: `error` - An error occured while opening a path.
 
 ## Documentation
 For full API reference, see the [DOCUMENTATION.md][docs] file.
