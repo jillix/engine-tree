@@ -1,15 +1,14 @@
 ## Documentation
 You can see below the API reference of this module.
 
-### `setProject(ev, data)`
-Sets the project name internally.
+### `load(data)`
+Loads the tree
 
 #### Params
-- **Event** `ev`: The event object.
 - **Object** `data`: An object containing the following fields:
  - `project` (String): The project name.
 
-### `openPath(ev, data)`
+### `openPath(data)`
 Opens a path to a file or directory.
 
 #### Params
@@ -18,7 +17,7 @@ Opens a path to a file or directory.
  - `path` (Strnig): The path to open.
  - `start` (Number): The path start index (splitted by `/`). Default is `3`.
 
-### `open(ev, data)`
+### `open(data)`
 Opens a file/directory, in the current directory.
 
 #### Params
