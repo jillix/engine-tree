@@ -38,21 +38,27 @@ function handleTreeAction (action) {
                 if (data.path === self.selected) {
                     var newPath = data.path.slice(0, data.path.lastIndexOf("/"));
 
-                    // update the path if the selected file got renamed
-                    if (act === "renamed") {
-                        newPath += "/" + data.name;
-                    }
-
                     // emit the new path
                     self.flow("pathChanged").write(null, {
-                        selectedFile: newPath
+                        selectedFile: (act === "renamed") ? newPath + "/" + data.name : newPath
                     });
-                    self.selected = newPath;
 
-                    // reemit select event to prevent multiple files
-                    if (item.type !== "folder") {
-                        self.flow("fileSelected").write(null, {
-                            selectedFile: newPath
+
+                    if (act === "renamed") {
+                        self.selected = newPath;
+
+                        // reemit select event to prevent multiple files
+                        if (item.type !== "folder") {
+                            self.flow("fileSelected").write(null, {
+                                selectedFile: newPath
+                            });
+                        }
+                    } else if (act === "delete") {
+                        // if the selected file was deleted select it's parent
+                        var parent = jsTreeInst.get_node(item.parent);
+                        self.selected = parent.original.path;
+                        self.flow("folderSelected").write(null, {
+                            selectedFolder: self.selected
                         });
                     }
                 }
@@ -65,6 +71,7 @@ function handleTreeAction (action) {
                 alert(err);
             });
 
+            // write the data to the stream
             str.write(null, {
                 project: self.project,
                 path: data.path,
@@ -220,6 +227,10 @@ exports.load = function (data) {
         if (!isFolder) {
             self.flow("fileSelected").write(null, {
                 selectedFile: data.node.original.path
+            });
+        } else {
+            self.flow("folderSelected").write(null, {
+                selectedFolder: data.node.original.path
             });
         }
 
