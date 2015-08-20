@@ -36,7 +36,12 @@ function handleTreeAction (action) {
 
                 // emit an url change if changed file is selected
                 if (data.path === self.selected) {
-                    var newPath = data.path.slice(0, data.path.lastIndexOf("/")) + "/" + data.name;
+                    var newPath = data.path.slice(0, data.path.lastIndexOf("/"));
+
+                    // update the path if the selected file got renamed
+                    if (act === "renamed") {
+                        newPath += "/" + data.name;
+                    }
 
                     // emit the new path
                     self.flow("pathChanged").write(null, {
@@ -84,6 +89,10 @@ function handleTreeAction (action) {
                 req({ name: item.text, path: item.original.path }, self.tmp.creating);
                 self.tmp.creating = null;
                 self.tmp.path = null;
+                return;
+            case "delete":
+                jsTreeInst.delete_node(item);
+                req({ path: item.original.path }, "delete");
                 return;
         }
     };
