@@ -252,8 +252,13 @@ exports.openPath = function (data) {
     self._openPathInProgress = true;
 
     var splits = data._path;
-    if (typeof splits === String) {
+    if (typeof splits === "string") {
         splits = splits.split("/");
+    }
+
+    // take care of paths that contain spaces
+    for (var i = 0; i < splits.length; ++i) {
+        splits[i] = decodeURI(splits[i]);
     }
 
     // tree is about to change
